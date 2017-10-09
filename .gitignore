@@ -1,0 +1,14 @@
+# Ignore all files and directories
+*
+
+# Except these
+!.gitignore
+!*.py
+!demo.ipynb
+!install_requirements.sh
+!LICENSE
+!README.md
+!requirements.txt
+!/resources
+!/resources/*.py
+
