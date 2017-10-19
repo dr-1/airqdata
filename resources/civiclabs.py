@@ -23,7 +23,8 @@ def get_sensors(**retrieval_kwargs):
                        "Civic Labs sensor information", format="csv", header=1,
                        dtype="object", **retrieval_kwargs)
     try:
-        sensors = sensors[["Chip_ID", "Sensor_ID", "Address"]]
+        sensors = sensors[["Chip ID", "PM Sensor ID", "Hum/Temp Sensor ID",
+                           "Address"]]
     except KeyError:
         raise KeyError("Could not get columns. Check if the structure or "
                        "labels of the Civic Labs sensor Google Sheet have "
