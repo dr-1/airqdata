@@ -116,7 +116,7 @@ class Metadata(object):
         # Retrieve and reshape data
         stations = retrieve(cache_file, url, "station metadata",
                             **retrieval_kwargs)
-        stations.drop(["geometry.type", "type"], axis=1, inplace=True)
+        stations.drop(columns=["geometry.type", "type"], inplace=True)
         stations.rename(columns={"properties.id": "id",
                                  "properties.label": "label"}, inplace=True)
         stations.set_index("id", inplace=True)
@@ -126,7 +126,7 @@ class Metadata(object):
                                for row in stations["geometry.coordinates"]],
                               index=stations.index)
         stations[["lon", "lat", "alt"]] = coords
-        stations.drop(["geometry.coordinates", "alt"], axis=1, inplace=True)
+        stations.drop(columns=["geometry.coordinates", "alt"], inplace=True)
 
         self.stations = stations
 
@@ -150,8 +150,8 @@ class Metadata(object):
         time_series = retrieve(TIME_SERIES_CACHE_FILE, TIME_SERIES_URL,
                                "time series metadata", **retrieval_kwargs)
         time_series.set_index("id", inplace=True)
-        time_series.drop(["station.geometry.type", "station.type"],
-                         axis=1, inplace=True)
+        time_series.drop(columns=["station.geometry.type", "station.type"],
+                         inplace=True)
         time_series.rename(columns={"station.properties.id": "station_id",
                                     "station.properties.label":
                                         "station_label",
@@ -236,8 +236,8 @@ class Metadata(object):
         """
         station_ids = self.get_stations_by_name(station).index
         _filter = self.time_series["station_id"].isin(station_ids)
-        return self.time_series[_filter].drop(["station_lon", "station_lat"],
-                                              axis=1)
+        return self.time_series[_filter].drop(columns=["station_lon",
+                                                       "station_lat"])
 
     def search_proximity(self, lat=50.848, lon=4.351, radius=8):
         """List stations within given radius from a location.
@@ -328,8 +328,7 @@ def get_data(time_series, start_date, end_date, **retrieval_kwargs):
     data = pd.DataFrame.from_dict(data.loc[0, "values"])
 
     # Convert Unix timestamps to datetimes and then to periods for index
-    timestamps = pd.to_datetime(data["timestamp"],
-                                unit="ms").dt.tz_localize("utc")
+    timestamps = pd.to_datetime(data["timestamp"], unit="ms", utc=True)
     periods = timestamps.dt.to_period(freq="h")
     data = pd.Series(data["value"].values, index=periods, dtype="float")
 

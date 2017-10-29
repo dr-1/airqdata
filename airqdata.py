@@ -145,7 +145,7 @@ def find_nearest_pm_stations(sensor_id=None, sensor_obj=None,
                                                             x["station_lon"],
                                                             x["station_lat"]),
                                                   axis=1)
-        id_nearest = timeseries["distance"].argmin()
+        id_nearest = timeseries["distance"].idxmin()
         timeseries["time series id"] = timeseries.index
         nearest[phen_short] = timeseries.loc[id_nearest]
 

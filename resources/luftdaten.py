@@ -84,8 +84,8 @@ class Sensor(object):
 
         # Split metadata from measurements; keep only latest measurements.
         try:
-            metadata = parsed.drop(["sensordatavalues", "timestamp"],
-                                   axis=1).iloc[0]
+            metadata = parsed.drop(columns=["sensordatavalues",
+                                            "timestamp"]).iloc[0]
         except ValueError:
             raise ValueError("Sensor does not appear to be online")
         metadata.name = "metadata"
@@ -135,8 +135,7 @@ class Sensor(object):
                 continue
 
             # Parse timestamps and make them timezone aware
-            timestamps = pd.to_datetime(data["timestamp"])
-            timestamps = timestamps.dt.tz_localize("UTC")
+            timestamps = pd.to_datetime(data["timestamp"], utc=True)
 
             # Reformat data according to sensor type
             data.set_index(timestamps, inplace=True)
