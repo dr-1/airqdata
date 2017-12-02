@@ -23,8 +23,9 @@ def get_sensors(**retrieval_kwargs):
         KeyError if sheet structure does not match listed columns
     """
     sensors = retrieve(SENSOR_INFO_CACHE_FILE, SENSOR_SHEET_URL,
-                       "Civic Labs sensor information", format="csv", header=1,
-                       dtype="object", **retrieval_kwargs)
+                       "Civic Labs sensor information", format="csv",
+                       read_csv_kwargs={"header": 1, "dtype": "object"},
+                       **retrieval_kwargs)
     try:
         sensors = sensors[["Chip ID", "PM Sensor ID", "Hum/Temp Sensor ID",
                            "Address"]]

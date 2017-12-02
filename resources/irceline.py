@@ -75,8 +75,7 @@ class Metadata(object):
                 function
         """
         phenomena = retrieve(PHENOMENA_CACHE_FILE, PHENOMENA_URL,
-                             "phenomenon metadata", dtype={"id": pd.np.int32},
-                             **retrieval_kwargs)
+                             "phenomenon metadata", **retrieval_kwargs)
         # FIXME: id not converted to int
         phenomena.set_index("id", inplace=True)
         phenomena.sort_index(inplace=True)

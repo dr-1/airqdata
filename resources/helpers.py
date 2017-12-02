@@ -16,7 +16,7 @@ CACHE_DIR = "./cache"
 
 
 def retrieve(cache_file, url, label, refresh_cache=False, format="json",
-             sep=",", header="infer", dtype=None, quiet=False):
+             quiet=False, **read_csv_kwargs):
     """Get a resource file from cache or from a URL and parse it.
 
     Cache downloaded data.
@@ -30,11 +30,9 @@ def retrieve(cache_file, url, label, refresh_cache=False, format="json",
         refresh_cache: boolean; when set to True, replace cached file
             with a new download
         format: data format of the source. Can handle "json" and "csv".
-        sep: Column separator. See pandas.read_csv sep argument.
-        header: row number of headers. See pandas.read_csv header
-            argument.
-        dtype: data type(s). See pandas.read_csv dtype argument.
         quiet: do not show feedback
+        read_csv_kwargs: keyword arguments to pass to pd.read_csv. Only
+            used if format is set to "csv".
 
     Returns:
         Dataframe of content retrieved from cache_file or URL
@@ -72,7 +70,7 @@ def retrieve(cache_file, url, label, refresh_cache=False, format="json",
             _json = response.json()
             return json_normalize(_json)  # Flattens nested JSON
         csv_buffer = BytesIO(response.content)
-        return pd.read_csv(csv_buffer, sep=sep, header=header, dtype=dtype)
+        return pd.read_csv(csv_buffer, **read_csv_kwargs)
 
     # Retrieve from cache
     quiet or print("Using cached", label)
@@ -80,7 +78,7 @@ def retrieve(cache_file, url, label, refresh_cache=False, format="json",
         with open(cache_file, "r") as file:
             _json = json.load(file)
         return json_normalize(_json)
-    return pd.read_csv(cache_file, sep=sep, header=header, dtype=dtype)
+    return pd.read_csv(cache_file, **read_csv_kwargs)
 
 
 def haversine(lon1, lat1, lon2, lat2):

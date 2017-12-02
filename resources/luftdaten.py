@@ -133,8 +133,8 @@ class Sensor(object):
             url = ARCHIVE_URL_PATTERN.format(date=date_iso, filename=filename)
             data = retrieve(filepath, url,
                             "luftdaten.info data for sensor {} on {}"
-                            "".format(sid, date_iso), format="csv", sep=";",
-                            **retrieval_kwargs)
+                            "".format(sid, date_iso), format="csv",
+                            read_csv_kwargs={"sep": ";"}, **retrieval_kwargs)
             if data is None:
                 continue
 
