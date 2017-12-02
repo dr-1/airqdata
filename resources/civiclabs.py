@@ -18,6 +18,9 @@ def get_sensors(**retrieval_kwargs):
 
     Returns:
         Dataframe of sensors with chip ID, sensor ID and address
+
+    Raises:
+        KeyError if sheet structure does not match listed columns
     """
     sensors = retrieve(SENSOR_INFO_CACHE_FILE, SENSOR_SHEET_URL,
                        "Civic Labs sensor information", format="csv", header=1,

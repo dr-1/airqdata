@@ -73,6 +73,9 @@ class Sensor(object):
         Args:
             retrieval_kwargs: keyword arguments to pass to retrieve
                 function
+
+        Raises:
+            ValueError if sensor does not appear to be online
         """
 
         # Get and cache metadata and measurements of past five minutes

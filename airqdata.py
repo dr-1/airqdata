@@ -39,6 +39,9 @@ def compare_sensor_and_station(sensor_id=None, sensor_obj=None,
     Returns:
         Dataframe of hourly means of sensor and station measurements
         List of measurement plots
+
+    Raises:
+        ValueError if not both of start_date and end_date are given
     """
 
     # Check parameters
@@ -114,6 +117,9 @@ def find_nearest_pm_stations(sensor_id=None, sensor_obj=None,
 
     Returns:
         Dataframe of nearest PM2.5 station and nearest PM10 station
+
+    Raises:
+        ValueError if not exactly one of sensor_id, sensor_obj is given
     """
 
     # Check parameters

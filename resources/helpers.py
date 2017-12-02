@@ -38,6 +38,9 @@ def retrieve(cache_file, url, label, refresh_cache=False, format="json",
 
     Returns:
         Dataframe of content retrieved from cache_file or URL
+
+    Raises:
+        ValueError if format parameter is not one of "json", "csv"
     """
 
     # Check input

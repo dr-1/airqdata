@@ -283,6 +283,9 @@ def get_data(time_series, start_date, end_date, **retrieval_kwargs):
 
     Returns:
         Dataframe of values, indexed by hourly periods
+
+    Raises:
+        ValueError if start_date is later than end_date
     """
 
     # Make start and end timezone aware and truncate time values
