@@ -87,19 +87,20 @@ class Sensor(object):
 
         # Split metadata from measurements; keep only latest measurements.
         try:
-            metadata = parsed.drop(columns=["sensordatavalues",
-                                            "timestamp"]).iloc[0]
+            metadata = (parsed
+                        .drop(columns=["sensordatavalues", "timestamp"])
+                        .iloc[0])
         except ValueError:
             raise ValueError("Sensor does not appear to be online")
         metadata.name = "metadata"
         self.metadata = metadata
         self.sensor_type = metadata["sensor.sensor_type.name"]
         current = parsed["sensordatavalues"].iloc[-1]
-        current = json_normalize(current)
-        current = current.replace({"P1": "pm10", "P2": "pm2.5"})
-        current = current.set_index("value_type")["value"]
-        current = pd.to_numeric(current)
-        current = current.replace([999.9, 1999.9], pd.np.nan)
+        current = (json_normalize(current)
+                   .replace({"P1": "pm10", "P2": "pm2.5"})
+                   .set_index("value_type")["value"])
+        current = (pd.to_numeric(current)
+                   .replace([999.9, 1999.9], pd.np.nan))
         self.current_values = dict(current)
 
     def get_data(self, start_date, end_date, **retrieval_kwargs):
@@ -214,8 +215,8 @@ class Sensor(object):
         data_resampler = self.measurements.resample("h", kind="period")
         data_point_count = data_resampler.count()
         data_point_count.index.name = "Period"
-        self.hourly_coverage = data_point_count.applymap(lambda x:
-                                                         min(1, x / 24))
+        self.hourly_coverage = (data_point_count
+                                .applymap(lambda x: min(1, x / 24)))
 
     def calculate_hourly_means(self, min_data_coverage=0.9):
         """Calculate hourly means of the data where data coverage is
@@ -243,10 +244,10 @@ class Sensor(object):
         """
         for measure in self.measurements:
             self.figs[measure], ax = plt.subplots()
-            title = "Sensor {} - {} Measurements".format(self.sensor_id,
-                                                         measure.upper())
-            self.measurements[measure].plot(y="value", ax=ax, figsize=(12, 8),
-                                            title=title, rot=90)
+            title = ("Sensor {} - {} Measurements"
+                     "".format(self.sensor_id, measure.upper()))
+            (self.measurements[measure]
+             .plot(y="value", ax=ax, figsize=(12, 8), title=title, rot=90))
             ax.set(xlabel="Timestamp",
                    ylabel="Concentration in µg/m³",
                    ylim=(0, None))
@@ -265,10 +266,10 @@ class Sensor(object):
         # TODO: Clean up x label format
         for measure in self.hourly_means:
             self.figs_hourly[measure], ax = plt.subplots()
-            title = "Sensor {} - {} Hourly Means".format(self.sensor_id,
-                                                         measure.upper())
-            self.hourly_means[measure].plot(y="value", figsize=(12, 8), ax=ax,
-                                            title=title, rot=90)
+            title = ("Sensor {} - {} Hourly Means"
+                     "".format(self.sensor_id, measure.upper()))
+            (self.hourly_means[measure]
+             .plot(y="value", figsize=(12, 8), ax=ax, title=title, rot=90))
             ax.set(xlabel="Timestamp",
                    ylabel="Concentration in µg/m³",
                    ylim=(0, None))
@@ -283,8 +284,8 @@ def search_proximity(lat=50.848, lon=4.351, radius=8):
     """Find sensors within given radius from a location.
 
     Args:
-        lat, lon: coordinates of the center of search, in decimal
-            degrees.
+        lat: latitude of the center of search, in decimal degrees
+        lon: longitude of the center of search, in decimal degrees
         radius: maximum distance from center, in kilometers
 
     Default values are the approximate center and radius of Brussels.
@@ -330,8 +331,11 @@ def evaluate_near_sensors(start_date, end_date, lat=50.848, lon=4.351,
     Coordinates and radius default to Brussels.
 
     Args:
-        start_date, end_date: see Sensor.get_data
-        lat, lon, radius: see search_proximity
+        start_date: see Sensor.get_data
+        end_date: see Sensor.get_data
+        lat: see search_proximity
+        lon: see search_proximity
+        radius: see search_proximity
         retrieval_kwargs: keyword arguments to pass to retrieve function
 
     Returns:
@@ -355,8 +359,8 @@ def evaluate_near_sensors(start_date, end_date, lat=50.848, lon=4.351,
     hourly_means = hourly_means.swaplevel(0, 1, axis=1)
     hourly_means.sort_index(axis=1, level=0, inplace=True)
     for measure in ("pm10", "pm2.5"):
-        hourly_means.loc[:, measure].plot(figsize=(16, 9),
-                                          title=measure.upper())
+        (hourly_means.loc[:, measure]
+         .plot(figsize=(16, 9), title=measure.upper()))
         plt.ylim(ymin=0)
         plt.ylabel("Concentration in µg/m³")
         plt.show()

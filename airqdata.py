@@ -72,10 +72,11 @@ def compare_sensor_and_station(sensor_id=None, sensor_obj=None,
     # Concatenate data
     station_data = pd.concat([data_nearest["pm2.5"], data_nearest["pm10"]],
                              axis=1, keys=["pm2.5", "pm10"])
-    data = pd.concat([sensor.hourly_means, station_data], axis=1,
-                     keys=["sensor", "station"])
-    data = data.swaplevel(axis=1).sort_index(axis=1, level=0,
-                                             ascending=False)
+    data = pd.concat([sensor.hourly_means, station_data],
+                     axis=1, keys=["sensor", "station"])
+    data = (data
+            .swaplevel(axis=1)
+            .sort_index(axis=1, level=0, ascending=False))
 
     # Create plots
     plots = []

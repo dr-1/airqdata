@@ -104,8 +104,8 @@ class Metadata(object):
             search_params -= 1
             url += PHENOMENON_PARAM_PATTERN.format(phenomenon=self.phenomenon)
             url += (search_params > 0) * "&"
-            cache_file_params += (str(self.phenomenon) +
-                                  (search_params > 0) * "_")
+            cache_file_params += (str(self.phenomenon)
+                                  + (search_params > 0) * "_")
         if self.location is not None:
             url += PROX_PARAM_PATTERN.format(**self.location)
             cache_file_params += ("{lon}_{lat}_{radius}"
@@ -141,8 +141,8 @@ class Metadata(object):
 
         def get_phenomenon_name(label):
             """Extract phenomenon name from time series label."""
-            phenomenon_name_series_id = label.split(sep=" - ",
-                                                    maxsplit=1)[0]
+            phenomenon_name_series_id = (label
+                                         .split(sep=" - ", maxsplit=1)[0])
             phenomenon_name = phenomenon_name_series_id.rsplit(maxsplit=1)[0]
             return phenomenon_name
 
@@ -189,8 +189,9 @@ class Metadata(object):
             self.get_time_series()
         phenomena_lower = self.time_series["phenomenon"].str.lower()
         matching_time_series = phenomena_lower == phenomenon.lower()
-        matching_station_ids = self.time_series.loc[matching_time_series,
-                                                    "station_id"].unique()
+        matching_station_ids = (self.time_series
+                                .loc[matching_time_series, "station_id"]
+                                .unique())
         matching_stations = self.stations.loc[matching_station_ids]
         return matching_stations
 
@@ -236,15 +237,15 @@ class Metadata(object):
         """
         station_ids = self.get_stations_by_name(station).index
         _filter = self.time_series["station_id"].isin(station_ids)
-        return self.time_series[_filter].drop(columns=["station_lon",
-                                                       "station_lat"])
+        return (self.time_series[_filter]
+                .drop(columns=["station_lon", "station_lat"]))
 
     def search_proximity(self, lat=50.848, lon=4.351, radius=8):
         """List stations within given radius from a location.
 
         Args:
-            lat, lon: coordinates of the center of search, in decimal
-                degrees.
+            lat: latitude of the center of search, in decimal degrees
+            lon: longitude of the center of search, in decimal degrees
             radius: maximum distance from center, in kilometers
 
         Default values are the approximate center and radius of Brussels.
@@ -260,11 +261,11 @@ class Metadata(object):
         PROX_SEARCH_URL_PATTERN.
         """
         near_stations = self.stations.copy()
-        near_stations["distance"] = near_stations.apply(lambda x:
-                                                        haversine(lon, lat,
-                                                                  x["lon"],
-                                                                  x["lat"]),
-                                                        axis=1)
+        near_stations["distance"] = (near_stations
+                                     .apply(lambda x:
+                                            haversine(lon, lat,
+                                                      x["lon"], x["lat"]),
+                                            axis=1))
         near_stations = near_stations[near_stations["distance"] <= radius]
         near_stations.sort_values("distance", inplace=True)
         return near_stations
