@@ -6,10 +6,11 @@ import os
 
 import requests
 import pandas as pd
+from pandas.io.json import json_normalize
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 
-from helpers import CACHE_DIR, retrieve, haversine, json_normalize
+from helpers import CACHE_DIR, retrieve, haversine
 
 # API URLs
 ARCHIVE_FILENAME_PATTERN = "{date}_{sensor_type}_sensor_{sensor_id}.csv"

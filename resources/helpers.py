@@ -10,7 +10,7 @@ from functools import partial
 
 import requests
 import pandas as pd
-from pandas.io.json import json_normalize as json_normalize
+from pandas.io.json import json_normalize
 
 CACHE_DIR = "./cache"
 
