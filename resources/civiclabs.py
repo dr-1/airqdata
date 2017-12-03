@@ -2,6 +2,8 @@
 
 """Access Civic Labs Belgium resources."""
 
+import pandas as pd
+
 from helpers import CACHE_DIR, retrieve
 
 SENSOR_SHEET_URL = ("https://docs.google.com/spreadsheets/d/1J8WTKryYjZHfBQrMS"
@@ -23,8 +25,9 @@ def get_sensors(**retrieval_kwargs):
         KeyError if sheet structure does not match listed columns
     """
     sensors = retrieve(SENSOR_INFO_CACHE_FILE, SENSOR_SHEET_URL,
-                       "Civic Labs sensor information", format="csv",
-                       read_csv_kwargs={"header": 1, "dtype": "object"},
+                       "Civic Labs sensor information",
+                       read_func=pd.read_csv,
+                       read_func_kwargs={"header": 1, "dtype": "object"},
                        **retrieval_kwargs)
     try:
         sensors = sensors[["Chip ID", "PM Sensor ID", "Hum/Temp Sensor ID",

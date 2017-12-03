@@ -15,8 +15,21 @@ from pandas.io.json import json_normalize
 CACHE_DIR = "./cache"
 
 
-def retrieve(cache_file, url, label, refresh_cache=False, format="json",
-             quiet=False, **read_csv_kwargs):
+def read_json(file, *_args, **_kwargs):
+    """Read a semi-structured JSON file into a flattened dataframe.
+
+    Args:
+        file: file object to read
+        _args: positional arguments receiver; not used
+        _kwargs: keyword arguments receiver; not used
+    """
+    _json = json.load(file)
+    flattened = json_normalize(_json)
+    return flattened
+
+
+def retrieve(cache_file, url, label, read_func=read_json, read_func_args=None,
+             read_func_kwargs=None, refresh_cache=False, quiet=False):
     """Get a resource file from cache or from a URL and parse it.
 
     Cache downloaded data.
@@ -27,32 +40,30 @@ def retrieve(cache_file, url, label, refresh_cache=False, format="json",
         url: URL to retrieve file from
         label: name of the information being retrieved, for printing to
             screen
+        read_func: function to parse resource; must take a file object
+            as its first argument and accept positional and keyword
+            arguments
+        read_func_args: sequence of positional arguments to pass to
+            read_func
+        read_func_kwargs: dict of keyword arguments to pass to read_func
         refresh_cache: boolean; when set to True, replace cached file
             with a new download
-        format: data format of the source. Can handle "json" and "csv".
         quiet: do not show feedback
-        read_csv_kwargs: keyword arguments to pass to pd.read_csv. Only
-            used if format is set to "csv".
 
     Returns:
         Dataframe of content retrieved from cache_file or URL
-
-    Raises:
-        ValueError if format parameter is not one of "json", "csv"
     """
-
-    # Check input
-    if format not in ("json", "csv"):
-        raise ValueError("Format must be \"json\" or \"csv\"")
-
-    # Check cache
-    cached = os.path.isfile(cache_file)
-
-    if refresh_cache or not cached:
+    if read_func_args is None:
+        read_func_args = tuple()
+    if read_func_kwargs is None:
+        read_func_kwargs = {}
+    if refresh_cache or not os.path.isfile(cache_file):
 
         # Download data
         quiet or print("Downloading", label)
         response = requests.get(url)
+
+        # Handle HTTP error codes
         if response.status_code // 100 != 2:
             quiet or print("No {label}: status code {status_code}, "
                            "\"{reason}\""
@@ -65,20 +76,17 @@ def retrieve(cache_file, url, label, refresh_cache=False, format="json",
         with open(cache_file, "wb") as file:
             file.write(response.content)
 
-        # Parse
-        if format == "json":
-            _json = response.json()
-            return json_normalize(_json)  # Flattens nested JSON
-        csv_buffer = BytesIO(response.content)
-        return pd.read_csv(csv_buffer, **read_csv_kwargs)
+        # Load downloaded data into a buffer
+        buffer = BytesIO(response.content)
 
-    # Retrieve from cache
-    quiet or print("Using cached", label)
-    if format == "json":
-        with open(cache_file, "r") as file:
-            _json = json.load(file)
-        return json_normalize(_json)
-    return pd.read_csv(cache_file, **read_csv_kwargs)
+    else:
+
+        # Load cached file into a buffer
+        quiet or print("Using cached", label)
+        with open(cache_file, "rb") as file:
+            buffer = BytesIO(file.read())
+
+    return read_func(buffer, *read_func_args, **read_func_kwargs)
 
 
 def haversine(lon1, lat1, lon2, lat2):
