@@ -20,7 +20,7 @@ PROX_SEARCH_URL_PATTERN = ("https://api.luftdaten.info/v1/filter/"
 SENSOR_URL_PATTERN = "https://api.luftdaten.info/v1/sensor/{sensor_id}/"
 
 
-class Sensor(object):
+class Sensor:
     """A sensor registered on luftdaten.info."""
 
     def __init__(self, sensor_id, **retrieval_kwargs):

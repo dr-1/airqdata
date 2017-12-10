@@ -29,7 +29,7 @@ PROX_CACHE_FILE_PATTERN = (CACHE_DIR +
                            "/irceline_prox_{lat}_{lon}_{radius}.json")
 
 
-class Metadata(object):
+class Metadata:
     """Information about phenomena and stations."""
 
     def __init__(self, phenomenon=None, location=None, **retrieval_kwargs):
