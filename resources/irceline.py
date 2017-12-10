@@ -108,7 +108,7 @@ class Metadata(object):
         if self.location is not None:
             url += PROX_PARAM_PATTERN.format(**self.location)
             cache_file_params += ("{lon}_{lat}_{radius}"
-                                  "".format(**self.location).replace(".", "-"))
+                                  .format(**self.location).replace(".", "-"))
         pattern = STATIONS_CACHE_FILE_PATTERN
         cache_file = pattern.format(params=cache_file_params)
 
@@ -320,7 +320,7 @@ def get_data(time_series, start_date, end_date, **retrieval_kwargs):
     #       day by day. Find longest missing intervals to make as few requests
     #       as possible.
     filename = ("irceline_{time_series_id}_{start_date}_{end_date}.json"
-                "".format(time_series_id=time_series,
+                .format(time_series_id=time_series,
                           start_date=start_date, end_date=end_date))
     filepath = os.path.join(CACHE_DIR, filename)
 

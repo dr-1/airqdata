@@ -67,9 +67,9 @@ def retrieve(cache_file, url, label, read_func=read_json, read_func_args=None,
         if response.status_code // 100 != 2:
             quiet or print("No {label}: status code {status_code}, "
                            "\"{reason}\""
-                           "".format(label=label,
-                                     status_code=response.status_code,
-                                     reason=response.reason))
+                           .format(label=label,
+                                   status_code=response.status_code,
+                                   reason=response.reason))
             return
 
         # Cache downloaded data

@@ -65,7 +65,7 @@ class Sensor(object):
         """Instance representation."""
         memory_address = hex(id(self))
         return ("<luftdaten.info sensor {} at {}>"
-                "".format(self.sensor_id, memory_address))
+                .format(self.sensor_id, memory_address))
 
     def update(self, **retrieval_kwargs):
         """Update sensor metadata and current measurements from cache or
@@ -84,7 +84,7 @@ class Sensor(object):
         filepath = os.path.join(CACHE_DIR, filename)
         parsed = retrieve(filepath, self.url,
                           "sensor {} metadata from luftdaten.info"
-                          "".format(self.sensor_id), **retrieval_kwargs)
+                          .format(self.sensor_id), **retrieval_kwargs)
 
         # Split metadata from measurements; keep only latest measurements.
         try:
@@ -134,7 +134,7 @@ class Sensor(object):
             url = ARCHIVE_URL_PATTERN.format(date=date_iso, filename=filename)
             data = retrieve(filepath, url,
                             "luftdaten.info data for sensor {} on {}"
-                            "".format(sid, date_iso),
+                            .format(sid, date_iso),
                             read_func=pd.read_csv,
                             read_func_kwargs={"sep": ";"}, **retrieval_kwargs)
             if data is None:
@@ -154,7 +154,7 @@ class Sensor(object):
             else:
                 raise NotImplementedError("No data parsing method implemented "
                                           "for sensor type {}"
-                                          "".format(self.sensor_type))
+                                          .format(self.sensor_type))
 
             daily_data.append(data)
 
@@ -247,7 +247,7 @@ class Sensor(object):
         for measure in self.measurements:
             self.figs[measure], ax = plt.subplots()
             title = ("Sensor {} - {} Measurements"
-                     "".format(self.sensor_id, measure.upper()))
+                     .format(self.sensor_id, measure.upper()))
             (self.measurements[measure]
              .plot(y="value", ax=ax, figsize=(12, 8), title=title, rot=90))
             ax.set(xlabel="Timestamp",
@@ -269,7 +269,7 @@ class Sensor(object):
         for measure in self.hourly_means:
             self.figs_hourly[measure], ax = plt.subplots()
             title = ("Sensor {} - {} Hourly Means"
-                     "".format(self.sensor_id, measure.upper()))
+                     .format(self.sensor_id, measure.upper()))
             (self.hourly_means[measure]
              .plot(y="value", figsize=(12, 8), ax=ax, title=title, rot=90))
             ax.set(xlabel="Timestamp",

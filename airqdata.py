@@ -86,10 +86,10 @@ def compare_sensor_and_station(sensor_id=None, sensor_obj=None,
         title = ("{measure} Hourly Means\n"
                  "Sensor {sensor_id} Vs. Station \"{station_label}\"\n"
                  "Distance: {distance:.1f} km"
-                 "".format(measure=measure.upper(),
-                           sensor_id=sensor.sensor_id,
-                           station_label=station_label,
-                           distance=distance))
+                 .format(measure=measure.upper(),
+                         sensor_id=sensor.sensor_id,
+                         station_label=station_label,
+                         distance=distance))
         plot = data[measure].plot(figsize=(16, 8), ylim=(0, None),
                                   title=title, legend=False)
         plot.legend(labels=[label.title()
