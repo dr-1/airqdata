@@ -3,6 +3,7 @@
 """Access resources on luftdaten.info."""
 
 import os
+import warnings
 
 import requests
 import pandas as pd
@@ -75,8 +76,8 @@ class Sensor:
             retrieval_kwargs: keyword arguments to pass to retrieve
                 function
 
-        Raises:
-            ValueError if sensor does not appear to be online
+        Warns:
+            UserWarning if sensor does not appear to be online
         """
 
         # Get and cache metadata and measurements of past five minutes
@@ -92,17 +93,19 @@ class Sensor:
                         .drop(columns=["sensordatavalues", "timestamp"])
                         .iloc[0])
         except ValueError:
-            raise ValueError("Sensor does not appear to be online")
-        metadata.name = "metadata"
-        self.metadata = metadata
-        self.sensor_type = metadata["sensor.sensor_type.name"]
-        current = parsed["sensordatavalues"].iloc[-1]
-        current = (json_normalize(current)
-                   .replace({"P1": "pm10", "P2": "pm2.5"})
-                   .set_index("value_type")["value"])
-        current = (pd.to_numeric(current)
-                   .replace([999.9, 1999.9], pd.np.nan))
-        self.current_values = dict(current)
+            warnings.warn("Sensor metadata could not be retrieved. Sensor "
+                          "does not appear to be online.")
+        else:
+            metadata.name = "metadata"
+            self.metadata = metadata
+            self.sensor_type = metadata["sensor.sensor_type.name"]
+            current = parsed["sensordatavalues"].iloc[-1]
+            current = (json_normalize(current)
+                       .replace({"P1": "pm10", "P2": "pm2.5"})
+                       .set_index("value_type")["value"])
+            current = (pd.to_numeric(current)
+                       .replace([999.9, 1999.9], pd.np.nan))
+            self.current_values = dict(current)
 
     def get_data(self, start_date, end_date, **retrieval_kwargs):
         """Get measurement data of the sensor in a given period.
@@ -121,6 +124,9 @@ class Sensor:
                 function
         """
         sid = self.sensor_id
+        if self.sensor_type is None:
+            self.sensor_type = input("Sensor type could not be determined "
+                                     "from metadata. Enter sensor type: ")
         stype = self.sensor_type.lower()
 
         # Get and process the data file for each date in the requested range
