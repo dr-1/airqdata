@@ -148,7 +148,7 @@ class Sensor:
 
             # Reformat data according to sensor type
             data.set_index(timestamps, inplace=True)
-            if self.sensor_type == "SDS011":
+            if self.sensor_type in ("SDS011", "HPM"):
                 data = data[["P1", "P2"]]
                 data.rename(columns={"P1": "pm10", "P2": "pm2.5"},
                             inplace=True)
