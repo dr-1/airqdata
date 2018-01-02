@@ -43,10 +43,8 @@ class Sensor:
             current_values: dictionary of current measurements
             measurements: pandas dataframe of particulate matter
                 measurements, empty at initialization
-            hourly_means: hourly means of measurements where minimum
-                data coverage is met
-            hourly_coverage: ratio of available to ideal number of data
-                points
+            hourly_means: hourly means of measurements where a minimum
+                number of data points exist
             figs: placeholder for plots of measurements
             figs_hourly: placeholder for plots of hourly means
         """
@@ -56,7 +54,6 @@ class Sensor:
         self.sensor_type = None
         self.current_values = None
         self.measurements = None
-        self.hourly_coverage = None
         self.hourly_means = None
         self.figs = {}
         self.figs_hourly = {}
@@ -169,7 +166,6 @@ class Sensor:
             self.measurements = pd.concat(daily_data)
         else:
             self.measurements = None
-            self.hourly_coverage = None
             self.hourly_means = None
             print("No data for sensor", self.sensor_id)
             return
@@ -180,7 +176,6 @@ class Sensor:
 
         self.measurements.sort_index(inplace=True)
         self.clean_data()
-        self.calculate_hourly_coverage()
         self.calculate_hourly_means()
 
     def clean_data(self):
@@ -216,33 +211,17 @@ class Sensor:
         diffs_seconds = diffs.dt.seconds
         return diffs_seconds.value_counts().sort_index()
 
-    def calculate_hourly_coverage(self):
-        """Calculate hourly ratio of available to ideal number of data
-        points.
-        """
-        data_resampler = self.measurements.resample("h", kind="period")
-        data_point_count = data_resampler.count()
-        data_point_count.index.name = "Period"
-        self.hourly_coverage = (data_point_count
-                                .applymap(lambda x: min(1, x / 24)))
-
-    def calculate_hourly_means(self, min_data_coverage=0.9):
-        """Calculate hourly means of the data where data coverage is
-        sufficient.
+    def calculate_hourly_means(self, min_count=10):
+        """Calculate hourly means.
 
         Args:
-            min_data_coverage: minimum ratio of available to ideal
-                number of data points required calculate means. A
-                coverage rate of 1.0 corresponds to 24 or 25
-                measurements per hour as recorded by luftdaten.info.
+            min_count: minimum number of data points per hour required
+                to calculate means
         """
-        if self.hourly_coverage is None:
-            self.calculate_hourly_coverage()
-        sufficient_coverage = self.hourly_coverage > min_data_coverage
         resampler = self.measurements.resample("h", kind="period")
-        good_means = resampler.mean()[sufficient_coverage]
-        good_means.index.name = "Period"
-        self.hourly_means = good_means
+        self.hourly_means = (resampler.sum(min_count=min_count)
+                             / resampler.count())
+        self.hourly_means.index.name = "Period"
 
     def plot_measurements(self):
         """Plot data as time series.
