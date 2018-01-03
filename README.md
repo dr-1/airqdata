@@ -7,7 +7,7 @@ They
 * clean and combine the retrieved data
 * analyze and visualize the data
 
-demo.ipynb shows how the modules can be used.
+The [demo.ipynb](https://github.com/dr-1/airqdata/blob/master/demo.ipynb) notebook shows how the modules can be used.
 
 The scripts are licensed under the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).
 
