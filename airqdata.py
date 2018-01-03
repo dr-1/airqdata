@@ -16,7 +16,7 @@ from resources import civiclabs
 from resources import luftdaten
 from resources import madavi
 from resources import irceline
-from resources.helpers import haversine, describe
+from resources.utils import haversine, describe
 
 
 def compare_sensor_and_station(sensor_id=None, sensor_obj=None,

@@ -4,7 +4,7 @@
 
 import pandas as pd
 
-from helpers import CACHE_DIR, retrieve
+from utils import CACHE_DIR, retrieve
 
 SENSOR_SHEET_URL = ("https://docs.google.com/spreadsheets/d/1J8WTKryYjZHfBQrMS"
                     "Yjwj6uLOBmWWLftaTqeicKVfYE/export?format=csv")

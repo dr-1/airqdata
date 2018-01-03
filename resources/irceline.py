@@ -6,7 +6,7 @@ import os
 
 import pandas as pd
 
-from helpers import CACHE_DIR, retrieve, haversine
+from utils import CACHE_DIR, retrieve, haversine
 
 # API URLs
 PHENOMENA_URL = "https://geo.irceline.be/sos/api/v1/phenomena"
