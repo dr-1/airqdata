@@ -12,3 +12,6 @@ The [demo.ipynb](https://github.com/dr-1/airqdata/blob/master/demo.ipynb) notebo
 The scripts are licensed under the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).
 
 Some of the scripts make use of data published by the Belgian Interregional Environment Agency (IRCEL/CELINE) under the [Creative Commons Attribution 4.0 license](https://creativecommons.org/licenses/by/4.0/).
+
+## Requirements
+A Python 3.5+ environment is assumed. Several Python packages are required, see requirements.txt. To install them, use Python's pip command or execute install_requirements.sh, with elevated privileges (`sudo ./install_requirements.sh`) if needed on your system.
