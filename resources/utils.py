@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Helper functions and constants."""
+"""Utility functions and constants."""
 
 import os
 import json
@@ -22,6 +22,10 @@ def read_json(file, *_args, **_kwargs):
         file: file object to read
         _args: positional arguments receiver; not used
         _kwargs: keyword arguments receiver; not used
+
+    Returns:
+        Dataframe with single column level; original JSON hierarchy is
+            expressed as dot notation in column names
     """
     _json = json.load(file)
     flattened = json_normalize(_json)
