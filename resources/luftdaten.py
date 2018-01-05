@@ -8,10 +8,10 @@ import warnings
 import requests
 import pandas as pd
 from pandas.io.json import json_normalize
-import matplotlib as mpl
 from matplotlib import pyplot as plt
 
-from utils import CACHE_DIR, retrieve, haversine
+from utils import (CACHE_DIR, retrieve, haversine, _date_formatter,
+                   _plotting_settings, _pandas_settings)
 
 # API URLs
 ARCHIVE_FILENAME_PATTERN = "{date}_{sensor_type}_sensor_{sensor_id}.csv"
@@ -352,9 +352,3 @@ def evaluate_near_sensors(start_date, end_date, lat=50.848, lon=4.351,
         plt.ylabel("Concentration in µg/m³")
         plt.show()
     return sensors, hourly_means
-
-
-# Output settings
-_date_formatter = mpl.dates.DateFormatter("%Y-%m-%d\n%H:%M %Z")
-plt.style.use("ggplot")
-pd.set_option("display.precision", 2)

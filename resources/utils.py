@@ -11,6 +11,8 @@ from functools import partial
 import requests
 import pandas as pd
 from pandas.io.json import json_normalize
+import matplotlib as mpl
+from matplotlib import pyplot as plt
 
 CACHE_DIR = "./cache"
 
@@ -125,3 +127,8 @@ if not os.path.isdir(CACHE_DIR):
 # Variant of pandas DataFrame.describe method showing an interval that contains
 # 98% of the data, instead of the default interquartile range
 describe = partial(pd.DataFrame.describe, percentiles=[0.01, 0.99])
+
+# Plotting and table output settings
+_date_formatter = mpl.dates.DateFormatter("%Y-%m-%d\n%H:%M %Z")
+_plotting_settings = plt.style.use("ggplot")
+_pandas_settings = pd.set_option("display.precision", 2)
