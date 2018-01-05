@@ -10,8 +10,7 @@ import pandas as pd
 from pandas.io.json import json_normalize
 from matplotlib import pyplot as plt
 
-from utils import (CACHE_DIR, retrieve, haversine, _date_formatter,
-                   _plotting_settings, _pandas_settings)
+from utils import CACHE_DIR, retrieve, haversine, _date_formatter
 
 # API URLs
 ARCHIVE_FILENAME_PATTERN = "{date}_{sensor_type}_sensor_{sensor_id}.csv"

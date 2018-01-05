@@ -130,5 +130,5 @@ describe = partial(pd.DataFrame.describe, percentiles=[0.01, 0.99])
 
 # Plotting and table output settings
 _date_formatter = mpl.dates.DateFormatter("%Y-%m-%d\n%H:%M %Z")
-_plotting_settings = plt.style.use("ggplot")
-_pandas_settings = pd.set_option("display.precision", 2)
+plt.style.use("ggplot")
+pd.set_option("display.precision", 2)
