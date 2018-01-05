@@ -321,7 +321,7 @@ def get_data(time_series, start_date, end_date, **retrieval_kwargs):
     #       as possible.
     filename = ("irceline_{time_series_id}_{start_date}_{end_date}.json"
                 .format(time_series_id=time_series,
-                          start_date=start_date, end_date=end_date))
+                        start_date=start_date, end_date=end_date))
     filepath = os.path.join(CACHE_DIR, filename)
 
     # TODO: Check day by day if data are cached

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3dd
+#!/usr/bin/env python3
 
 """Combine resources of Civic Labs Belgium, luftdaten.info, madavi.de
 and irceline.be.
