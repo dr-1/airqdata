@@ -14,60 +14,42 @@ STATIONS_URL = "https://geo.irceline.be/sos/api/v1/stations"
 TIME_SERIES_URL = "https://geo.irceline.be/sos/api/v1/timeseries"
 DATA_URL_PATTERN = (TIME_SERIES_URL + "/{time_series_id}/getData?"
                     "timespan={start}/{end}")
-PROX_PARAM_PATTERN = ('near={{"center":{{"type":"Point",'
-                      '"coordinates":[{lon},{lat}]}},"radius":{radius}}}')
-PHENOMENON_PARAM_PATTERN = "phenomenon={phenomenon}"
-PROX_SEARCH_URL_PATTERN = ('https://geo.irceline.be/sos/api/v1/stations?'
-                           'near={{"center":{{"type":"Point",'
-                           '"coordinates":[{lon},{lat}]}},"radius":{radius}}}')
 
 # Caching
 PHENOMENA_CACHE_FILE = CACHE_DIR + "/irceline_phenomena.json"
-STATIONS_CACHE_FILE_PATTERN = CACHE_DIR + "/irceline_stations{params}.json"
+STATIONS_CACHE_FILE = CACHE_DIR + "/irceline_stations.json"
 TIME_SERIES_CACHE_FILE = CACHE_DIR + "/irceline_time_series.json"
-PROX_CACHE_FILE_PATTERN = (CACHE_DIR +
-                           "/irceline_prox_{lat}_{lon}_{radius}.json")
 
 
 class Metadata:
-    """Information about phenomena and stations."""
+    """Information about phenomena and stations.
 
-    def __init__(self, phenomenon=None, location=None, **retrieval_kwargs):
-        """Collect information through IRCELINE API or from cache.
+    Properties:
+        phenomena: dataframe of measurands, e.g. particulate matter of
+            various diameters, nitrogen oxides, ozone; indexed by
+            phenomenon ID
+        stations: dataframe of station descriptions indexed by station
+            ID
+        time_series: dataframe of available (station, phenomenon)
+            combinations, indexed by (station & phenomenon) ID
+    """
+    phenomena = None
+    stations = None
+    time_series = None
+
+    def __init__(self, **retrieval_kwargs):
+        """Retrieve metadata through IRCELINE API or from cache.
 
         Args:
-            phenomenon: measured phenomenon to filter stations for
-            location: dict like
-                {"lat": lat, "lon": lon, "radius": radius} to filter by
-                geographic proximity; see search_proximity
             retrieval_kwargs: keyword arguments to pass to retrieve
                 function
-
-        Properties in addition to those constructed from arguments:
-            phenomena: dataframe of measurands, e.g. particulate matter
-                of various diameters, nitrogen oxides, ozone; indexed by
-                phenomenon ID
-            categories: same as phenomena
-            stations: dataframe of station descriptions indexed by
-                station ID
-            pm_stations: dataframe of stations that measure particulate
-                matter
-            time_series: dataframe of available (station, phenomenon)
-                combinations, indexed by (station & phenomenon) ID
         """
-
-        # Properties from arguments
-        self.phenomenon = phenomenon
-        self.location = location
-
-        self.phenomena = None
-        self.stations = None
-        self.time_series = None
         self.get_phenomena(**retrieval_kwargs)
         self.get_stations(**retrieval_kwargs)
         self.get_time_series(**retrieval_kwargs)
 
-    def get_phenomena(self, **retrieval_kwargs):
+    @classmethod
+    def get_phenomena(cls, **retrieval_kwargs):
         """Retrieve a list of measured phenomena.
 
         Args:
@@ -79,14 +61,10 @@ class Metadata:
         # FIXME: id not converted to int
         phenomena.set_index("id", inplace=True)
         phenomena.sort_index(inplace=True)
-        self.phenomena = phenomena
+        cls.phenomena = phenomena
 
-    @property
-    def categories(self):
-        """Same as phenomena."""
-        return self.phenomena
-
-    def get_stations(self, **retrieval_kwargs):
+    @classmethod
+    def get_stations(cls, **retrieval_kwargs):
         """Retrieve a list of measuring stations.
 
         Args:
@@ -94,31 +72,14 @@ class Metadata:
                 function
         """
 
-        # Build query URL and cache file name
-        search_params = sum((self.phenomenon is not None,
-                             self.location is not None))
-        url = STATIONS_URL + (search_params > 0) * "?"
-        cache_file_params = (search_params > 0) * "_"
-        if self.phenomenon is not None:
-            search_params -= 1
-            url += PHENOMENON_PARAM_PATTERN.format(phenomenon=self.phenomenon)
-            url += (search_params > 0) * "&"
-            cache_file_params += (str(self.phenomenon)
-                                  + (search_params > 0) * "_")
-        if self.location is not None:
-            url += PROX_PARAM_PATTERN.format(**self.location)
-            cache_file_params += ("{lon}_{lat}_{radius}"
-                                  .format(**self.location).replace(".", "-"))
-        pattern = STATIONS_CACHE_FILE_PATTERN
-        cache_file = pattern.format(params=cache_file_params)
-
         # Retrieve and reshape data
-        stations = retrieve(cache_file, url, "station metadata",
-                            **retrieval_kwargs)
-        stations.drop(columns=["geometry.type", "type"], inplace=True)
-        stations.rename(columns={"properties.id": "id",
-                                 "properties.label": "label"}, inplace=True)
-        stations.set_index("id", inplace=True)
+        stations = retrieve(STATIONS_CACHE_FILE, STATIONS_URL,
+                            "station metadata", **retrieval_kwargs)
+        stations = (stations
+                    .drop(columns=["geometry.type", "type"])
+                    .rename(columns={"properties.id": "id",
+                                     "properties.label": "label"})
+                    .set_index("id"))
 
         # Split coordinates into columns
         coords = pd.DataFrame([row
@@ -127,9 +88,10 @@ class Metadata:
         stations[["lon", "lat", "alt"]] = coords
         stations.drop(columns=["geometry.coordinates", "alt"], inplace=True)
 
-        self.stations = stations
+        cls.stations = stations
 
-    def get_time_series(self, **retrieval_kwargs):
+    @classmethod
+    def get_time_series(cls, **retrieval_kwargs):
         """Retrieve information on available time series: a collection
         of station & phenomenon combinations.
 
@@ -173,73 +135,75 @@ class Metadata:
                                    "station_id", "station_label",
                                    "station_lon", "station_lat"]]
 
-        self.time_series = time_series
+        cls.time_series = time_series
 
-    def list_stations_by_phenomenon(self, phenomenon):
+    @classmethod
+    def list_stations_by_phenomenon(cls, phenomenon):
         """Get a list of stations that measure a given phenomenon.
 
         Args:
             phenomenon: name of the phenomenon, case-insensitive
 
         Returns:
-            Subset of self.stations
+            Subset of stations property
         """
-        if self.time_series is None:
-            self.get_time_series()
-        phenomena_lower = self.time_series["phenomenon"].str.lower()
+        phenomena_lower = cls.time_series["phenomenon"].str.lower()
         matching_time_series = phenomena_lower == phenomenon.lower()
-        matching_station_ids = (self.time_series
+        matching_station_ids = (cls.time_series
                                 .loc[matching_time_series, "station_id"]
                                 .unique())
-        matching_stations = self.stations.loc[matching_station_ids]
+        matching_stations = cls.stations.loc[matching_station_ids]
         return matching_stations
 
-    @property
-    def pm10_stations(self):
+    @classmethod
+    def get_pm10_stations(cls):
         """Get a list of stations that measure PM10.
 
         Returns:
-            Subset of self.stations
+            Subset of stations property
         """
-        return self.list_stations_by_phenomenon("Particulate Matter < 10 µm")
+        return cls.list_stations_by_phenomenon("Particulate Matter < 10 µm")
 
-    @property
-    def pm25_stations(self):
+    @classmethod
+    def get_pm25_stations(cls):
         """Get a list of stations that measure PM2.5.
 
         Returns:
-            Subset of self.stations
+            Subset of stations property
         """
-        return self.list_stations_by_phenomenon("Particulate Matter < 2.5 µm")
+        return cls.list_stations_by_phenomenon("Particulate Matter < 2.5 µm")
 
-    def get_stations_by_name(self, name):
+    @classmethod
+    def get_stations_by_name(cls, name):
         """Get stations matching a station name.
 
         Args:
             name: full or partial station name; case-insensitive
 
         Returns:
-            Matching subset of self.stations
+            Matching subset of stations property
         """
-        station_labels_lower = self.stations["label"].str.lower()
+        station_labels_lower = cls.stations["label"].str.lower()
         matching = station_labels_lower.str.contains(name.lower())
-        return self.stations[matching]
+        return cls.stations[matching]
 
-    def list_station_time_series(self, station):
+    @classmethod
+    def list_station_time_series(cls, station):
         """List available time series for a station.
 
         Args:
             station: full or partial station name, case-insensitive
 
         Returns:
-            Matching subset of self.time_series
+            Matching subset of time_series property
         """
-        station_ids = self.get_stations_by_name(station).index
-        _filter = self.time_series["station_id"].isin(station_ids)
-        return (self.time_series[_filter]
+        station_ids = cls.get_stations_by_name(station).index
+        _filter = cls.time_series["station_id"].isin(station_ids)
+        return (cls.time_series[_filter]
                 .drop(columns=["station_lon", "station_lat"]))
 
-    def search_proximity(self, lat=50.848, lon=4.351, radius=8):
+    @classmethod
+    def search_proximity(cls, lat=50.848, lon=4.351, radius=8):
         """List stations within given radius from a location.
 
         Args:
@@ -255,11 +219,15 @@ class Metadata:
                 center, indexed by station ID
 
         The search is based on the station list retrieved as part of the
-        metadata. The irceline.be API offers an alternative way to get
-        an (unordered) list of stations near a location, see
-        PROX_SEARCH_URL_PATTERN.
+        metadata.
+
+        The irceline.be API offers an alternative way to get an
+        (unordered) list of stations near a location:
+        `https://geo.irceline.be/sos/api/v1/stations?
+        near={{"center":{{"type":"Point","coordinates":[{lon},
+        {lat}]}},"radius":{radius}}}`
         """
-        near_stations = self.stations.copy()
+        near_stations = cls.stations.copy()
         near_stations["distance"] = (near_stations
                                      .apply(lambda x:
                                             haversine(lon, lat,

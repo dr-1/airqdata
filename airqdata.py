@@ -139,14 +139,14 @@ def find_nearest_pm_stations(sensor_id=None, sensor_obj=None,
     lon = float(sensor.metadata["location.longitude"])
 
     # Get IRCELINE metadata
-    irceline_metadata = irceline.Metadata(**retrieval_kwargs)
+    irceline.Metadata(**retrieval_kwargs)
 
     # Identify PM time series of nearest PM-measuring stations
     nearest = {}
     for (phen_short, phen_long) in (("pm10", "Particulate Matter < 10 µm"),
                                     ("pm2.5", "Particulate Matter < 2.5 µm")):
-        matches = irceline_metadata.time_series["phenomenon"] == phen_long
-        timeseries = irceline_metadata.time_series[matches].copy()
+        matches = irceline.Metadata.time_series["phenomenon"] == phen_long
+        timeseries = irceline.Metadata.time_series[matches].copy()
         timeseries["distance"] = timeseries.apply(lambda x:
                                                   haversine(lon, lat,
                                                             x["station_lon"],
