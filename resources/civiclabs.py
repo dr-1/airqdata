@@ -11,9 +11,9 @@ SENSOR_SHEET_URL = ("https://docs.google.com/spreadsheets/d/1J8WTKryYjZHfBQrMS"
 SENSOR_INFO_CACHE_FILE = CACHE_DIR + "/civic_labs_sensors.csv"
 
 
-def get_sensors(**retrieval_kwargs):
-    """Download sensor information from Civic Labs' Google Sheet and
-    cache it.
+def get_sensor_info(**retrieval_kwargs):
+    """Download information on the sensors deployed in Civic Labs'
+    InfluencAir project from its Google Sheet and cache it.
 
     Args:
         retrieval_kwargs: keyword arguments to pass to retrieve function
@@ -26,21 +26,22 @@ def get_sensors(**retrieval_kwargs):
     Raises:
         KeyError if sheet structure does not match listed columns
     """
-    sensors = retrieve(SENSOR_INFO_CACHE_FILE, SENSOR_SHEET_URL,
-                       "Civic Labs sensor information",
-                       read_func=pd.read_csv,
-                       read_func_kwargs={"header": 1, "dtype": "object"},
-                       **retrieval_kwargs)
+    sensor_info = retrieve(SENSOR_INFO_CACHE_FILE, SENSOR_SHEET_URL,
+                           "Civic Labs sensor information",
+                           read_func=pd.read_csv,
+                           read_func_kwargs={"header": 1, "dtype": "object"},
+                           **retrieval_kwargs)
     try:
-        sensors = (sensors[["Chip ID", "PM Sensor ID", "Hum/Temp Sensor ID",
-                            "Address", "Floor", "Side (Street/Garden)"]]
-                   .rename(columns={"Side (Street/Garden)": "Side"}))
+        sensor_info = (sensor_info[["Chip ID", "PM Sensor ID",
+                                    "Hum/Temp Sensor ID", "Address", "Floor",
+                                    "Side (Street/Garden)"]]
+                       .rename(columns={"Side (Street/Garden)": "Side"}))
     except KeyError:
         raise KeyError("Could not get columns. Check if the structure or "
                        "labels of the Civic Labs sensor Google Sheet have "
                        "changed.")
-    return sensors
+    return sensor_info
 
 
 if __name__ == "__main__":
-    sensors = get_sensors()
+    sensor_info = get_sensor_info()
