@@ -19,7 +19,9 @@ def get_sensors(**retrieval_kwargs):
         retrieval_kwargs: keyword arguments to pass to retrieve function
 
     Returns:
-        Dataframe of sensors with chip ID, sensor ID and address
+        Dataframe of sensors with chip ID, sensor IDs of PM sensors and
+            humidity/temperature sensors, address, floor number and side
+            of the building that the sensors are installed on
 
     Raises:
         KeyError if sheet structure does not match listed columns
@@ -30,8 +32,9 @@ def get_sensors(**retrieval_kwargs):
                        read_func_kwargs={"header": 1, "dtype": "object"},
                        **retrieval_kwargs)
     try:
-        sensors = sensors[["Chip ID", "PM Sensor ID", "Hum/Temp Sensor ID",
-                           "Address"]]
+        sensors = (sensors[["Chip ID", "PM Sensor ID", "Hum/Temp Sensor ID",
+                            "Address", "Floor", "Side (Street/Garden)"]]
+                   .rename(columns={"Side (Street/Garden)": "Side"}))
     except KeyError:
         raise KeyError("Could not get columns. Check if the structure or "
                        "labels of the Civic Labs sensor Google Sheet have "
