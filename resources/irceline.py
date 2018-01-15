@@ -58,7 +58,7 @@ class Metadata:
         """
         phenomena = retrieve(PHENOMENA_CACHE_FILE, PHENOMENA_URL,
                              "phenomenon metadata", **retrieval_kwargs)
-        # FIXME: id not converted to int
+        phenomena["id"] = phenomena["id"].astype("int")
         phenomena = phenomena.set_index("id").sort_index()
         cls.phenomena = phenomena
 
@@ -109,6 +109,7 @@ class Metadata:
         # Retrieve and reshape data
         time_series = retrieve(TIME_SERIES_CACHE_FILE, TIME_SERIES_URL,
                                "time series metadata", **retrieval_kwargs)
+        time_series["id"] = time_series["id"].astype("int")
         time_series = (time_series
                        .set_index("id")
                        .drop(columns=["station.geometry.type",
