@@ -148,9 +148,8 @@ class Sensor:
             # Reformat data according to sensor type
             data.set_index(timestamps, inplace=True)
             if self.sensor_type in ("SDS011", "HPM"):
-                data = data[["P1", "P2"]]
-                data.rename(columns={"P1": "pm10", "P2": "pm2.5"},
-                            inplace=True)
+                data = (data[["P1", "P2"]]
+                        .rename(columns={"P1": "pm10", "P2": "pm2.5"}))
             elif self.sensor_type == "DHT22":
                 data = data[["temperature", "humidity"]]
             else:
@@ -284,13 +283,12 @@ def search_proximity(lat=50.848, lon=4.351, radius=8):
     url = PROX_SEARCH_URL_PATTERN.format(lat=lat, lon=lon, radius=radius)
     _json = requests.get(url).json()
     sensors = json_normalize(_json)
-    sensors = sensors[["sensor.id", "sensor.sensor_type.name",
+    sensors = (sensors[["sensor.id", "sensor.sensor_type.name",
                        "location.latitude", "location.longitude"]]
-    sensors.rename(columns={"sensor.id": "sensor_id",
-                            "sensor.sensor_type.name": "sensor_type",
-                            "location.latitude": "latitude",
-                            "location.longitude": "longitude"},
-                   inplace=True)
+               .rename(columns={"sensor.id": "sensor_id",
+                                "sensor.sensor_type.name": "sensor_type",
+                                "location.latitude": "latitude",
+                                "location.longitude": "longitude"}))
     for col in "latitude", "longitude":
         sensors[col] = pd.to_numeric(sensors[col], downcast="float")
     sensors.set_index("sensor_id", inplace=True)

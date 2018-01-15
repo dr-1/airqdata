@@ -59,8 +59,7 @@ class Metadata:
         phenomena = retrieve(PHENOMENA_CACHE_FILE, PHENOMENA_URL,
                              "phenomenon metadata", **retrieval_kwargs)
         # FIXME: id not converted to int
-        phenomena.set_index("id", inplace=True)
-        phenomena.sort_index(inplace=True)
+        phenomena = phenomena.set_index("id").sort_index()
         cls.phenomena = phenomena
 
     @classmethod
@@ -110,14 +109,14 @@ class Metadata:
         # Retrieve and reshape data
         time_series = retrieve(TIME_SERIES_CACHE_FILE, TIME_SERIES_URL,
                                "time series metadata", **retrieval_kwargs)
-        time_series.set_index("id", inplace=True)
-        time_series.drop(columns=["station.geometry.type", "station.type"],
-                         inplace=True)
-        time_series.rename(columns={"station.properties.id": "station_id",
-                                    "station.properties.label":
-                                        "station_label",
-                                    "uom": "unit"},
-                           inplace=True)
+        time_series = (time_series
+                       .set_index("id")
+                       .drop(columns=["station.geometry.type",
+                                      "station.type"])
+                       .rename(columns={"station.properties.id": "station_id",
+                                        "station.properties.label":
+                                            "station_label",
+                                        "uom": "unit"}))
 
         # Extract phenomenon names from labels
         labels = time_series["label"]
@@ -233,8 +232,8 @@ class Metadata:
                                             haversine(lon, lat,
                                                       x["lon"], x["lat"]),
                                             axis=1))
-        near_stations = near_stations[near_stations["distance"] <= radius]
-        near_stations.sort_values("distance", inplace=True)
+        near_stations = (near_stations[near_stations["distance"] <= radius]
+                         .sort_values("distance"))
         return near_stations
 
 
