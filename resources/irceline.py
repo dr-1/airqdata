@@ -84,8 +84,8 @@ class Metadata:
         coords = pd.DataFrame([row
                                for row in stations["geometry.coordinates"]],
                               index=stations.index)
-        stations[["lon", "lat", "alt"]] = coords
-        stations.drop(columns=["geometry.coordinates", "alt"], inplace=True)
+        stations[["lat", "lon"]] = coords[[1, 0]]
+        stations.drop(columns=["geometry.coordinates"], inplace=True)
 
         cls.stations = stations
 
@@ -128,12 +128,12 @@ class Metadata:
                                for row
                                in time_series["station.geometry.coordinates"]],
                               index=time_series.index)
-        time_series[["station_lon", "station_lat", "station_alt"]] = coords
+        time_series[["station_lat", "station_lon"]] = coords[[1, 0]]
 
         # Sort and drop columns
         time_series = time_series[["label", "phenomenon", "unit",
                                    "station_id", "station_label",
-                                   "station_lon", "station_lat"]]
+                                   "station_lat", "station_lon"]]
 
         cls.time_series = time_series
 
@@ -200,7 +200,7 @@ class Metadata:
         station_ids = cls.get_stations_by_name(station).index
         _filter = cls.time_series["station_id"].isin(station_ids)
         return (cls.time_series[_filter]
-                .drop(columns=["station_lon", "station_lat"]))
+                .drop(columns=["station_lat", "station_lon"]))
 
     @classmethod
     def search_proximity(cls, lat=50.848, lon=4.351, radius=8):
@@ -230,8 +230,8 @@ class Metadata:
         near_stations = cls.stations.copy()
         near_stations["distance"] = (near_stations
                                      .apply(lambda x:
-                                            haversine(lon, lat,
-                                                      x["lon"], x["lat"]),
+                                            haversine(lat, lon,
+                                                      x["lat"], x["lon"]),
                                             axis=1))
         near_stations = (near_stations[near_stations["distance"] <= radius]
                          .sort_values("distance"))

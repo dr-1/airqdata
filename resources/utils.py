@@ -95,11 +95,11 @@ def retrieve(cache_file, url, label, read_func=read_json, read_func_args=None,
     return read_func(buffer, *read_func_args, **read_func_kwargs)
 
 
-def haversine(lon1, lat1, lon2, lat2):
+def haversine(lat1, lon1, lat2, lon2):
     """Calculate the great circle distance between two points on earth.
 
     Args:
-        lon1, lat1, lon2, lat2: coordinates of point 1 and point 2 in
+        lat1, lon1, lat2, lon2: coordinates of point 1 and point 2 in
             decimal degrees
 
     Returns:
@@ -107,11 +107,11 @@ def haversine(lon1, lat1, lon2, lat2):
     """
 
     # Convert decimal degrees to radians
-    lon1, lat1, lon2, lat2 = (radians(val) for val in (lon1, lat1, lon2, lat2))
+    lat1, lon1, lat2, lon2 = (radians(val) for val in (lat1, lon1, lat2, lon2))
 
     # Haversine formula
-    d_lon = lon2 - lon1
     d_lat = lat2 - lat1
+    d_lon = lon2 - lon1
     a = sin(d_lat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(d_lon / 2) ** 2
     c = 2 * asin(sqrt(a))
     radius = 6371  # Radius of earth in kilometers

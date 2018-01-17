@@ -148,9 +148,9 @@ def find_nearest_pm_stations(sensor_id=None, sensor_obj=None,
         matches = irceline.Metadata.time_series["phenomenon"] == phen_long
         timeseries = irceline.Metadata.time_series[matches].copy()
         timeseries["distance"] = timeseries.apply(lambda x:
-                                                  haversine(lon, lat,
-                                                            x["station_lon"],
-                                                            x["station_lat"]),
+                                                  haversine(lat, lon,
+                                                            x["station_lat"],
+                                                            x["station_lon"]),
                                                   axis=1)
         id_nearest = timeseries["distance"].idxmin()
         timeseries["time series id"] = timeseries.index

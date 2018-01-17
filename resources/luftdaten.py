@@ -298,9 +298,9 @@ def search_proximity(lat=50.848, lon=4.351, radius=8):
 
     # Calculate distances from search center and sort by those distances
     sensors["distance"] = sensors.apply(lambda x:
-                                        haversine(lon, lat,
-                                                  float(x["longitude"]),
-                                                  float(x["latitude"])),
+                                        haversine(lat, lon,
+                                                  float(x["latitude"]),
+                                                  float(x["longitude"])),
                                         axis=1)
     sensors.sort_values("distance", inplace=True)
 
