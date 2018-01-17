@@ -12,6 +12,11 @@ Sheets, luftdaten.info, madavi.de and irceline.be
 The [demo.ipynb](https://github.com/dr-1/airqdata/blob/master/demo.ipynb)
 notebook shows how the modules can be used.
 
+Note that the API will evolve considerably over the coming weeks. In
+particular, BaseSensor and BaseStation template classes will be introduced for
+a cleaner and more consistent model of those real-world objects. This will make
+it easier to compare sensors that belong to different organizations.
+
 ## Requirements
 A Python 3.5+ environment is assumed. Several Python packages are required, see
 requirements.txt. To install them, use Python's pip command or execute
