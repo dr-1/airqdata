@@ -58,8 +58,8 @@ def compare_sensor_and_station(sensor_id=None, sensor_obj=None,
     sensor.clean_data()
 
     # Find nearest stations and get their measurements
-    nearest = find_nearest_pm_stations(sensor_obj=sensor,
-                                       **retrieval_kwargs)
+    nearest = find_nearest_pm_time_series(sensor_obj=sensor,
+                                          **retrieval_kwargs)
     measures = ("pm2.5", "pm10")
     data_nearest = {}
     for measure in measures:
@@ -102,11 +102,11 @@ def compare_sensor_and_station(sensor_id=None, sensor_obj=None,
     return data, plots
 
 
-def find_nearest_pm_stations(sensor_id=None, sensor_obj=None,
-                             **retrieval_kwargs):
-    """Find the IRCELINE station(s) nearest to a given Luftdaten sensor
-    that measure particulate matter. These may be the same or two
-    different stations for the two types of PM measured.
+def find_nearest_pm_time_series(sensor_id=None, sensor_obj=None,
+                                **retrieval_kwargs):
+    """Find the IRCELINE time series for PM2.5 and PM10 measured at
+    stations nearest to a given Luftdaten sensor. These may be the same
+    or two different stations.
 
     Args:
 
@@ -145,15 +145,13 @@ def find_nearest_pm_stations(sensor_id=None, sensor_obj=None,
     nearest = {}
     for (phen_short, phen_long) in (("pm10", "Particulate Matter < 10 µm"),
                                     ("pm2.5", "Particulate Matter < 2.5 µm")):
-        matches = irceline.Metadata.time_series["phenomenon"] == phen_long
-        timeseries = irceline.Metadata.time_series[matches].copy()
-        timeseries["distance"] = timeseries.apply(lambda x:
-                                                  haversine(lat, lon,
-                                                            x["station_lat"],
-                                                            x["station_lon"]),
-                                                  axis=1)
-        id_nearest = timeseries["distance"].idxmin()
-        timeseries["time series id"] = timeseries.index
-        nearest[phen_short] = timeseries.loc[id_nearest]
+        results = irceline.Metadata.query_time_series(phenomenon=phen_long,
+                                                      lat_nearest=lat,
+                                                      lon_nearest=lon)
+        first_result = (results
+                        .reset_index()
+                        .iloc[0]
+                        .rename({"id": "time series id"}))
+        nearest[phen_short] = first_result
 
     return pd.DataFrame(nearest)

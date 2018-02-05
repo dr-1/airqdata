@@ -138,19 +138,45 @@ class Metadata:
         cls.time_series = time_series
 
     @classmethod
-    def filter_time_series(cls, phenomenon):
-        """Get the subset of time series related to a given phenomenon.
+    def query_time_series(cls, phenomenon, lat_nearest=None, lon_nearest=None):
+        """Convenience method to filter time series for those that
+        measure a given phenomenon, and sort by distance to a point if
+        given.
 
         Args:
-            phenomenon: name of the phenomenon, case-insensitive
+            phenomenon: character sequence or regular expression to
+                filter phenomena by; operates on the "phenomenon" column
+                of the time_series dataframe
+            lat_nearest: latitude of the reference point
+            lon_nearest: longitude of the reference point
 
         Returns:
-            Subset of time_series property
+            Subset of time_series property. If lat_nearest and
+                lon_nearest are given, the result has an additional
+                column indicating distance in km from that point, and is
+                sorted by that distance.
+
+        Raises:
+            ValueError if only one of lat_nearest, lon_nearest is given
         """
+        if bool(lat_nearest is None) != bool(lon_nearest is None):
+            raise ValueError("Provide both or none of lat_nearest, "
+                             "lon_nearest")
         phenomena_lower = cls.time_series["phenomenon"].str.lower()
-        matching_time_series = cls.time_series[phenomena_lower
-                                               == phenomenon.lower()]
-        return matching_time_series
+        matches = phenomena_lower.str.contains(phenomenon.lower())
+        results = cls.time_series[matches].copy()
+        if lat_nearest is None:
+            return results
+        if len(results) == 0:
+            results["distance"] = None
+            return results
+        results["distance"] = results.apply(lambda row:
+                                            haversine(lat_nearest, lon_nearest,
+                                                      row["station_lat"],
+                                                      row["station_lon"]),
+                                            axis=1)
+        results = results.sort_values("distance")
+        return results
 
     @classmethod
     def get_pm10_time_series(cls):
@@ -159,7 +185,7 @@ class Metadata:
         Returns:
             Subset of time_series property
         """
-        return cls.filter_time_series("Particulate Matter < 10 µm")
+        return cls.query_time_series("Particulate Matter < 10 µm")
 
     @classmethod
     def get_pm25_time_series(cls):
@@ -168,7 +194,7 @@ class Metadata:
         Returns:
             Subset of time_series property
         """
-        return cls.filter_time_series("Particulate Matter < 2.5 µm")
+        return cls.query_time_series("Particulate Matter < 2.5 µm")
 
     @classmethod
     def get_stations_by_name(cls, name):
