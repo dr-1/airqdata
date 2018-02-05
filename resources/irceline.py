@@ -138,40 +138,37 @@ class Metadata:
         cls.time_series = time_series
 
     @classmethod
-    def list_stations_by_phenomenon(cls, phenomenon):
-        """Get a list of stations that measure a given phenomenon.
+    def filter_time_series(cls, phenomenon):
+        """Get the subset of time series related to a given phenomenon.
 
         Args:
             phenomenon: name of the phenomenon, case-insensitive
 
         Returns:
-            Subset of stations property
+            Subset of time_series property
         """
         phenomena_lower = cls.time_series["phenomenon"].str.lower()
-        matching_time_series = phenomena_lower == phenomenon.lower()
-        matching_station_ids = (cls.time_series
-                                .loc[matching_time_series, "station_id"]
-                                .unique())
-        matching_stations = cls.stations.loc[matching_station_ids]
-        return matching_stations
+        matching_time_series = cls.time_series[phenomena_lower
+                                               == phenomenon.lower()]
+        return matching_time_series
 
     @classmethod
-    def get_pm10_stations(cls):
-        """Get a list of stations that measure PM10.
+    def get_pm10_time_series(cls):
+        """Get the subset of time series related to PM10.
 
         Returns:
-            Subset of stations property
+            Subset of time_series property
         """
-        return cls.list_stations_by_phenomenon("Particulate Matter < 10 µm")
+        return cls.filter_time_series("Particulate Matter < 10 µm")
 
     @classmethod
-    def get_pm25_stations(cls):
-        """Get a list of stations that measure PM2.5.
+    def get_pm25_time_series(cls):
+        """Get the subset of time series related to PM2.5.
 
         Returns:
-            Subset of stations property
+            Subset of time_series property
         """
-        return cls.list_stations_by_phenomenon("Particulate Matter < 2.5 µm")
+        return cls.filter_time_series("Particulate Matter < 2.5 µm")
 
     @classmethod
     def get_stations_by_name(cls, name):
