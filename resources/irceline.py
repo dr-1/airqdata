@@ -37,16 +37,17 @@ class Metadata:
     stations = None
     time_series = None
 
-    def __init__(self, **retrieval_kwargs):
+    @classmethod
+    def __init__(cls, **retrieval_kwargs):
         """Retrieve metadata through IRCELINE API or from cache.
 
         Args:
             retrieval_kwargs: keyword arguments to pass to retrieve
                 function
         """
-        self.get_phenomena(**retrieval_kwargs)
-        self.get_stations(**retrieval_kwargs)
-        self.get_time_series(**retrieval_kwargs)
+        cls.get_phenomena(**retrieval_kwargs)
+        cls.get_stations(**retrieval_kwargs)
+        cls.get_time_series(**retrieval_kwargs)
 
     @classmethod
     def get_phenomena(cls, **retrieval_kwargs):
