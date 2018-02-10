@@ -1,16 +1,19 @@
 # Air quality data
 
-These scripts retrieve and process air quality data, mainly on particulate
-matter, for the Civic Labs Belgium air quality project.
+A toolkit to retrieve, analyze and visualize data from a variety of air quality
+sensors.
 
-They
-* wrap the APIs of various sources, including Civic Labs Belgium's Google
-Sheets, luftdaten.info, madavi.de and irceline.be
+The scripts include tools to
+* wrap the APIs of various data providers, including Civic Labs Belgium's
+InfluencAir project, the luftdaten.info project, madavi.de and irceline.be
 * clean and combine the retrieved data
-* analyze and visualize the data
+* describe measurements statistically - individual sensors or groups to compare
+* plot measurement time series
+* find sensors that are geographically close
 
-The [demo.ipynb](https://github.com/dr-1/airqdata/blob/master/demo.ipynb)
-notebook shows how the modules can be used.
+
+For usage examples, see the
+[demo.ipynb](https://github.com/dr-1/airqdata/blob/master/demo.ipynb) notebook.
 
 Note that the API will evolve considerably over the coming weeks. In
 particular, BaseSensor and BaseStation template classes will be introduced for
@@ -27,6 +30,6 @@ install_requirements.sh, with elevated privileges
 The scripts are licensed under the
 [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).
 
-Some of the scripts make use of data published by the Belgian Interregional
-Environment Agency (IRCEL/CELINE) under the [Creative Commons Attribution 4.0
-license](https://creativecommons.org/licenses/by/4.0/).
+Data published by the Belgian Interregional Environment Agency (IRCEL/CELINE)
+are licensed under the [Creative Commons Attribution 4.0 license]
+(https://creativecommons.org/licenses/by/4.0/).
