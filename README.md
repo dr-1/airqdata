@@ -5,7 +5,10 @@ sensors.
 
 The scripts include tools to
 * wrap the APIs of various data providers, including Civic Labs Belgium's
-InfluencAir project, the luftdaten.info project, madavi.de and irceline.be
+[InfluencAir](https://influencair.be/) project, the
+[luftdaten.info](https://luftdaten.info/) project,
+[madavi.de](https://www.madavi.de/ok-lab-stuttgart/) and
+[irceline.be](http://www.irceline.be/en)
 * clean and combine the retrieved data
 * describe measurements statistically - individual sensors or groups to compare
 * plot measurement time series
