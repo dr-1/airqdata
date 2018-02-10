@@ -30,6 +30,11 @@ install_requirements.sh, with elevated privileges
 The scripts are licensed under the
 [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).
 
+Data made available by the luftdaten.info project are
+[licensed](https://archive.luftdaten.info/00disclamer.md) under the [Open
+Database License](https://opendatacommons.org/licenses/odbl/1.0/).
+
 Data published by the Belgian Interregional Environment Agency (IRCEL/CELINE)
-are licensed under the [Creative Commons Attribution 4.0 license]
-(https://creativecommons.org/licenses/by/4.0/).
+are [licensed](http://www.irceline.be/en/documentation/open-data) under the
+[Creative Commons Attribution 4.0
+license](https://creativecommons.org/licenses/by/4.0/).
