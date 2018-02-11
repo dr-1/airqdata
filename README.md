@@ -16,7 +16,9 @@ The scripts include tools to
 
 
 For usage examples, see the
-[demo.ipynb](https://github.com/dr-1/airqdata/blob/master/demo.ipynb) notebook.
+[demo.ipynb](
+https://nbviewer.jupyter.org/gist/dr-1/450c275b1ad2cbf88e9c4325c5d032bc)
+notebook.
 
 Note that the API will evolve considerably over the coming weeks. In
 particular, BaseSensor and BaseStation template classes will be introduced for
