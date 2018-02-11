@@ -136,6 +136,13 @@ class Metadata:
                                    "station_id", "station_label",
                                    "station_lat", "station_lon"]]
 
+        # Clean unit descriptors
+        time_series["unit"] = (time_series["unit"]
+                               .str.replace("m3", "m³")
+                               .str.replace("ug", "µg"))
+        (time_series
+         .loc[time_series["phenomenon"] == "temperature", "unit"]) = "°C"
+
         cls.time_series = time_series
 
     @classmethod
