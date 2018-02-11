@@ -3,10 +3,13 @@
 """Get and process air data from IRCELINE-run measuring stations."""
 
 import os
+import warnings
+from itertools import chain
 
 import pandas as pd
 
-from utils import CACHE_DIR, retrieve, haversine
+from utils import (CACHE_DIR, EQUIVALENT_PHENOMENA, BaseSensor, retrieve,
+                   haversine)
 
 # API URLs
 PHENOMENA_URL = "https://geo.irceline.be/sos/api/v1/phenomena"
@@ -25,17 +28,19 @@ class Metadata:
     """Information about phenomena and stations.
 
     Properties:
-        phenomena: dataframe of measurands, e.g. particulate matter of
+        phenomena: dataframe of phenomena, e.g. particulate matter of
             various diameters, nitrogen oxides, ozone; indexed by
             phenomenon ID
         stations: dataframe of station descriptions indexed by station
             ID
         time_series: dataframe of available (station, phenomenon)
             combinations, indexed by (station & phenomenon) ID
+        initialized: boolean to indicate that __init__ has run
     """
     phenomena = None
     stations = None
     time_series = None
+    initialized = False
 
     @classmethod
     def __init__(cls, **retrieval_kwargs):
@@ -48,6 +53,7 @@ class Metadata:
         cls.get_phenomena(**retrieval_kwargs)
         cls.get_stations(**retrieval_kwargs)
         cls.get_time_series(**retrieval_kwargs)
+        cls.initialized = True
 
     @classmethod
     def get_phenomena(cls, **retrieval_kwargs):
@@ -269,69 +275,168 @@ class Metadata:
         return near_stations
 
 
-def get_data(time_series, start_date, end_date, **retrieval_kwargs):
-    """Retrieve time series data.
+class Sensor(BaseSensor):
+    """A sensor located at an IRCELINE measuring station.
+
+    Sensors are represented as time series by IRCELINE.
+    """
+
+    def __init__(self, timeseries_id):
+        """Establish sensor properties.
+
+        Args:
+            timeseries_id: IRCELINE time series ID as listed in
+                Metadata.time_series, used as value of sensor_id
+                property
+        """
+
+        # Ensure that metadata can be queried
+        Metadata.initialized or Metadata()
+
+        super().__init__(sensor_id=timeseries_id, affiliation="IRCELINE")
+        self.metadata = Metadata.time_series.loc[int(timeseries_id)]
+        self.label = "at " + self.metadata["station_label"]
+        self.lat = self.metadata["station_lat"]
+        self.lon = self.metadata["station_lon"]
+        self.phenomena = [self.metadata["phenomenon"]]
+        self.units = {self.metadata["phenomenon"]: self.metadata["unit"]}
+
+    def get_measurements(self, start_date, end_date, **retrieval_kwargs):
+        """Retrieve time series data.
+
+        Args:
+            start_date: date string in ISO 8601 (YYYY-MM-DD) format.
+                Interpreted as UTC.
+            end_date: date string like start_date. If the current date
+                or a future date is entered, end will be truncated so
+                that only complete days are downloaded.
+            retrieval_kwargs: keyword arguments to pass to retrieve
+                function
+
+        Raises:
+            ValueError if start_date is later than end_date
+        """
+
+        # Make start and end timezone aware and truncate time values
+        query_start_date = pd.to_datetime(start_date, format="%Y-%m-%d",
+                                          utc=True).normalize()
+        query_end_date = (pd.to_datetime(end_date, format="%Y-%m-%d",
+                                         utc=True).normalize()
+                          + pd.Timedelta(days=1))  # To include end_date data
+
+        # Check validity of input and truncate end date if needed
+        today = pd.to_datetime("today", utc=True)
+        if query_end_date > today:
+            warnings.warn("Resetting end_date to yesterday")
+            yesterday = today - pd.Timedelta(days=1)
+            end_date = yesterday.strftime("%Y-%m-%d")
+            query_end_date = today  # 00:00, to include yesterday's data
+        if query_start_date > query_end_date:
+            raise ValueError("end_date must be greater than or equal to "
+                             "start_date")
+
+        # IRCELINE API takes local times. Convert start and end accordingly.
+        query_start_local = query_start_date.tz_convert("Europe/Brussels")
+        query_start_local_str = query_start_local.strftime("%Y-%m-%dT%H")
+        query_end_local = query_end_date.tz_convert("Europe/Brussels")
+        query_end_local -= pd.Timedelta(1, "s")
+        query_end_local_str = query_end_local.strftime("%Y-%m-%dT%H:%M:%S")
+
+        url = DATA_URL_PATTERN.format(time_series_id=self.sensor_id,
+                                      start=query_start_local_str,
+                                      end=query_end_local_str)
+
+        # TODO: Split response into days and cache as daily files; check cache
+        #       day by day. Find longest missing intervals to make as few
+        #       requests as possible.
+        filename = ("irceline_{time_series_id}_{start_date}_{end_date}.json"
+                    .format(time_series_id=self.sensor_id,
+                            start_date=start_date, end_date=end_date))
+        filepath = os.path.join(CACHE_DIR, filename)
+
+        # TODO: Check day by day if data are cached
+        # Retrieve and parse data
+        data = retrieve(filepath, url, "IRCELINE timeseries data",
+                        **retrieval_kwargs)
+        data = pd.DataFrame.from_dict(data.loc[0, "values"])
+        if len(data) == 0:
+            return
+        data["value"] = data["value"].astype("float")
+        data = data.rename(columns={"value": self.metadata["phenomenon"]})
+
+        # Convert Unix timestamps to datetimes and then to periods for index
+        data.index = (pd.to_datetime(data["timestamp"], unit="ms", utc=True)
+                      .dt.to_period(freq="h"))
+        data.index.name = "Period"
+        data = data.drop(columns=["timestamp"])
+
+        self.measurements = data
+
+    def clean_measurements(self):
+        """Clean measurement data."""
+        pass
+
+    def get_hourly_means(self):
+        """Get hourly means of measurements. In IRCELINE time series
+        these are identical to hourly means.
+
+        Returns:
+            measurements property
+        """
+        return self.measurements
+
+    def plot_measurements(self):
+        """Plot hourly means. In IRCELINE time series these are
+        identical to measurements.
+
+        Returns:
+            Matplotlib figure
+            Matplotlib axes
+        """
+        return self.plot_hourly_means()
+
+
+def find_nearest_sensors(sensor, **retrieval_kwargs):
+    """For a given sensor of any affiliation, find the nearest IRCELINE
+        sensors that measure equivalent phenomena.
 
     Args:
-        time_series: time series ID as listed in Metadata.time_series
-        start_date: date string in ISO 8601 format. Interpreted as UTC.
-        end_date: date string like start. If the current date or a
-            future date is entered, end will be truncated so that only
-            complete days are downloaded.
+        sensor: sensor object, instance of utils.BaseSensor
         retrieval_kwargs: keyword arguments to pass to retrieve function
 
     Returns:
-        Dataframe of values, indexed by hourly periods
-
-    Raises:
-        ValueError if start_date is later than end_date
+        Dataframe of information on nearest matching IRCELINE sensor
     """
 
-    # Make start and end timezone aware and truncate time values
-    query_start_date = pd.to_datetime(start_date, format="%Y-%m-%d",
-                                      utc=True).normalize()
-    query_end_date = pd.to_datetime(end_date, format="%Y-%m-%d",
-                                    utc=True).normalize()
+    # Ensure that IRCELINE metadata can be queried
+    Metadata.initialized or Metadata(**retrieval_kwargs)
 
-    # Check validity of input and truncate end date if needed
-    today = pd.to_datetime("today", utc=True)
-    yesterday = today - pd.Timedelta(days=1)
-    if query_end_date > yesterday:
-        # TODO: Raise warning
-        query_end_date = yesterday
-        end_date = query_end_date.strftime("%Y-%m-%d")
-    if query_start_date > query_end_date:
-        raise ValueError("end_date must be greater than or equal to "
-                         "start_date")
+    nearest = pd.DataFrame()
+    for phenomenon in sensor.phenomena:
 
-    # IRCELINE API takes local times. Convert start and end accordingly.
-    query_start_dt = query_start_date.tz_convert("Europe/Brussels")
-    query_start_dt_formatted = query_start_dt.strftime("%Y-%m-%dT%H")
-    query_end_dt = query_end_date.tz_convert("Europe/Brussels")
-    query_end_dt = (query_end_dt - pd.Timedelta(1, "s"))
-    query_end_dt_formatted = query_end_dt.strftime("%Y-%m-%dT%H:%M:%S")
+        # Names of comparable phenomena potentially measured by IRCELINE
+        equivalent_phenomena = chain.from_iterable(group
+                                                   for group
+                                                   in EQUIVALENT_PHENOMENA
+                                                   if phenomenon in group)
 
-    url = DATA_URL_PATTERN.format(time_series_id=time_series,
-                                  start=query_start_dt_formatted,
-                                  end=query_end_dt_formatted)
+        # Collect and combine matching IRCELINE time series
+        matching_pieces = []
+        for equivalent_phenomenon in equivalent_phenomena:
+            matching_piece = Metadata.query_time_series(equivalent_phenomenon,
+                                                        lat_nearest=sensor.lat,
+                                                        lon_nearest=sensor.lon)
+            matching_pieces.append(matching_piece)
+        try:
+            results = pd.concat(matching_pieces).sort_values("distance")
+        except ValueError:  # No matching time series
+            continue
 
-    # TODO: Split response into days and cache as daily files. Also check cache
-    #       day by day. Find longest missing intervals to make as few requests
-    #       as possible.
-    filename = ("irceline_{time_series_id}_{start_date}_{end_date}.json"
-                .format(time_series_id=time_series,
-                        start_date=start_date, end_date=end_date))
-    filepath = os.path.join(CACHE_DIR, filename)
+        # Pick nearest
+        first_result = (results
+                        .reset_index()
+                        .iloc[0]
+                        .rename({"id": "time series id"}))
+        nearest[phenomenon] = first_result
 
-    # TODO: Check day by day if data are cached
-    # Retrieve and parse data
-    data = retrieve(filepath, url, "IRCELINE timeseries data",
-                    **retrieval_kwargs)
-    data = pd.DataFrame.from_dict(data.loc[0, "values"])
-
-    # Convert Unix timestamps to datetimes and then to periods for index
-    timestamps = pd.to_datetime(data["timestamp"], unit="ms", utc=True)
-    periods = timestamps.dt.to_period(freq="h")
-    data = pd.Series(data["value"].values, index=periods, dtype="float")
-
-    return data
+    return nearest

@@ -14,16 +14,10 @@ The scripts include tools to
 * plot measurement time series
 * find sensors that are geographically close
 
-
 For usage examples, see the
 [demo.ipynb](
 https://nbviewer.jupyter.org/gist/dr-1/450c275b1ad2cbf88e9c4325c5d032bc)
 notebook.
-
-Note that the API will evolve considerably over the coming weeks. In
-particular, BaseSensor and BaseStation template classes will be introduced for
-a cleaner and more consistent model of those real-world objects. This will make
-it easier to compare sensors that belong to different organizations.
 
 ## Requirements
 A Python 3.5+ environment is assumed. Several Python packages are required, see

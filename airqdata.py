@@ -5,8 +5,10 @@ and irceline.be.
 """
 
 import sys
+from itertools import chain
 
 import pandas as pd
+from matplotlib import pyplot as plt
 
 # Allow dir-less imports in resource modules. This makes it possible to
 # run those modules by themselves from their directory.
@@ -16,142 +18,132 @@ from resources import civiclabs
 from resources import luftdaten
 from resources import madavi
 from resources import irceline
-from resources.utils import haversine, describe
+from resources.utils import EQUIVALENT_PHENOMENA, describe
 
 
-def compare_sensor_and_station(sensor_id=None, sensor_obj=None,
-                               start_date=None, end_date=None,
-                               **retrieval_kwargs):
-    """Compare the measurements of a Luftdaten sensor to the closest
-    IRCELINE station(s). Values are plotted and returned.
+def compare_sensor_data(sensors, phenomena, start_date, end_date,
+                        hourly_means=True, show_plots=True,
+                        **retrieval_kwargs):
+    """Compare the measurements of a group of sensors.
+
+    Values are plotted and returned.
 
     Args:
-
-        Exactly one of sensor_id and sensor_obj must be given.
-        Both start_date and end_date must be given.
-
-        sensor_id: luftdaten.info sensor ID
-        sensor_obj: luftdaten.Sensor instance
-        start_date: date parameter to pass to luftdaten.Sensor.get_data
-        end_date: date parameter to pass to luftdaten.Sensor.get_data
+        sensors: sequence of sensor objects, instances of
+            resources.utils.BaseSensor
+        phenomena: sequence of column names of the data to use; order
+            corresponding to sensors parameter
+        start_date: start date of measurements to compare, in ISO 8601
+            (YYYY-MM-DD) format
+        end_date: end date of measurements to compare, in ISO 8601
+            (YYYY-MM-DD) format
+        hourly_means: boolean; compare hourly means of measurements
+            instead of measurements themselves
+        show_plots: call show on returned plots; set to False to modify
+            plots before displaying them
         retrieval_kwargs: keyword arguments to pass to retrieve function
 
     Returns:
-        Dataframe of hourly means of sensor and station measurements
-        List of measurement plots
-
-    Raises:
-        ValueError if not both of start_date and end_date are given
+        Combined dataframe of sensors' measurements or their hourly
+            means
+        Matplotlib AxesSubplot of the combined data
     """
+    data_pieces = []
+    combined_columns = []
+    ylabels = []
+    for sensor, column in zip(sensors, phenomena):
 
-    # Check parameters
-    if start_date is None or end_date is None:
-        raise ValueError("Both start_date and end_date must be given")
+        # Retrieve and collect data
+        sensor.get_measurements(start_date=start_date, end_date=end_date,
+                                **retrieval_kwargs)
+        sensor.clean_measurements()
+        if hourly_means:
+            data = sensor.get_hourly_means()
+        else:
+            data = sensor.measurements
+        data = data[column]
+        data_pieces.append(data)
 
-    # Use or create luftdaten.Sensor instance and get sensor data
-    if sensor_obj is not None:
-        sensor = sensor_obj
-    else:
-        sensor = luftdaten.Sensor(sensor_id, **retrieval_kwargs)
-    sensor.get_data(start_date=start_date, end_date=end_date,
-                    **retrieval_kwargs)
-    sensor.clean_data()
+        # Build and collect column names for combined dataframe
+        key = (column, str(sensor.sensor_id) + " " + sensor.label,
+               sensor.affiliation)
+        combined_columns.append(key)
 
-    # Find nearest stations and get their measurements
-    nearest = find_nearest_pm_time_series(sensor_obj=sensor,
-                                          **retrieval_kwargs)
-    measures = ("pm2.5", "pm10")
-    data_nearest = {}
-    for measure in measures:
-        series_nearest = nearest.loc["time series id", measure]
-        data_nearest[measure] = irceline.get_data(series_nearest,
-                                                  start_date=start_date,
-                                                  end_date=end_date,
-                                                  **retrieval_kwargs)
+        # Build and collect y axis labels
+        ylabel = "{} in {}".format(column, sensor.units[column])
+        ylabels.append(ylabel)
 
-    # Concatenate data
-    station_data = pd.concat([data_nearest["pm2.5"], data_nearest["pm10"]],
-                             axis=1, keys=["pm2.5", "pm10"])
-    data = pd.concat([sensor.hourly_means, station_data],
-                     axis=1, keys=["sensor", "station"])
-    data = (data
-            .swaplevel(axis=1)
-            .sort_index(axis=1, level=0, ascending=False))
+    # Combine data from sensors into single dataframe
+    combined_data = pd.concat(data_pieces, axis=1, keys=combined_columns)
+    combined_data.columns.names = ["Phenomenon", "Sensor", "Affiliation"]
 
-    # Create plots
+    # Plot data
+    aggregation_level = "Hourly Means" if hourly_means else "Measurements"
+    title = "Comparison of Sensor {}".format(aggregation_level)
+    ymin = min(0, combined_data.min().min())  # Allows values below 0
+    plot = combined_data.plot(title=title, ylim=(ymin, None), figsize=(16, 8))
+    plot.axes.set_ylabel("\n".join(label for label in ylabels))
+    if show_plots:
+        plt.show()
+
+    return combined_data, plot
+
+
+def compare_nearest_irceline_sensors(sensor, start_date, end_date,
+                                     **retrieval_kwargs):
+    """Compare a sensor's measurements (hourly means) to those of the
+    closest IRCELINE sensor(s) that measure equivalent phenomena.
+
+    Args:
+        sensor: sensor object, instance of resources.utils.BaseSensor
+        start_date: start date of measurements to compare, in ISO 8601
+            (YYYY-MM-DD) format
+        end_date: end date of measurements to compare, in ISO 8601
+            (YYYY-MM-DD) format
+        retrieval_kwargs: keyword arguments to pass to retrieve function
+
+    Returns:
+        Combined dataframe of the hourly means of the sensors'
+            measurements
+        List of Matplotlib AxesSubplots of the combined data, one for
+            each phenomenon
+    """
+    nearest_irceline_sensors = (irceline
+                                .find_nearest_sensors(sensor,
+                                                      **retrieval_kwargs))
+    combined_data_pieces = []
     plots = []
-    for measure in measures:
-        station_label = nearest.loc["station_label", measure]
-        distance = nearest.loc["distance", measure]
-        title = ("{measure} Hourly Means\n"
-                 "Sensor {sensor_id} Vs. Station \"{station_label}\"\n"
-                 "Distance: {distance:.1f} km"
-                 .format(measure=measure.upper(),
-                         sensor_id=sensor.sensor_id,
-                         station_label=station_label,
-                         distance=distance))
-        plot = data[measure].plot(figsize=(16, 8), ylim=(0, None),
-                                  title=title, legend=False)
-        plot.legend(labels=[label.title()
-                            for label in data[measure].columns])
-        plot.set(ylim=(0, None),
-                 xlabel="Time",
-                 ylabel="Concentration in µg/m³")
+    for phenomenon in nearest_irceline_sensors:
+        irceline_time_series_id = nearest_irceline_sensors.at["time series id",
+                                                              phenomenon]
+        irceline_phenomenon = nearest_irceline_sensors.at["phenomenon",
+                                                          phenomenon]
+        distance = nearest_irceline_sensors.at["distance", phenomenon]
+        irceline_sensor = irceline.Sensor(irceline_time_series_id)
+        irceline_station_label = nearest_irceline_sensors.at["station_label",
+                                                             phenomenon]
+        (combined_data_piece,
+         plot) = compare_sensor_data([sensor, irceline_sensor],
+                                     [phenomenon, irceline_phenomenon],
+                                     start_date, end_date, show_plots=False,
+                                     **retrieval_kwargs)
+        title = (plot.axes.get_title()
+                 + ("\n{phenomenon} at {affiliation} {sid} {label}\n"
+                    "{irceline_phenomenon} at IRCELINE {irceline_tsid} "
+                    "{irceline_station_label}\n"
+                    "Distance: {distance:.1f} km"
+                    .format(phenomenon=phenomenon,
+                            affiliation=sensor.affiliation,
+                            sid=sensor.sensor_id,
+                            label=sensor.label,
+                            irceline_phenomenon=irceline_phenomenon,
+                            irceline_tsid=irceline_time_series_id,
+                            irceline_station_label=irceline_station_label,
+                            distance=distance)))
+        plot.axes.set_title(title)
+        combined_data_pieces.append(combined_data_piece)
         plots.append(plot)
+    combined_data = pd.concat(combined_data_pieces, axis=1)
+    plt.show()
 
-    return data, plots
-
-
-def find_nearest_pm_time_series(sensor_id=None, sensor_obj=None,
-                                **retrieval_kwargs):
-    """Find the IRCELINE time series for PM2.5 and PM10 measured at
-    stations nearest to a given Luftdaten sensor. These may be the same
-    or two different stations.
-
-    Args:
-
-        Exactly one of sensor_id and sensor_obj must be given.
-
-        sensor_id: luftdaten.info sensor ID
-        sensor_obj: luftdaten.Sensor instance
-        retrieval_kwargs: keyword arguments to pass to retrieve function
-
-    Returns:
-        Dataframe of nearest PM2.5 station and nearest PM10 station
-
-    Raises:
-        ValueError if not exactly one of sensor_id, sensor_obj is given
-    """
-
-    # Check parameters
-    if bool(sensor_id) + bool(sensor_obj) != 1:
-        raise ValueError("Exactly one of sensor_id and sensor_obj must be "
-                         "given")
-
-    # Use or create luftdaten.Sensor instance
-    if sensor_obj is not None:
-        sensor = sensor_obj
-    else:
-        sensor = luftdaten.Sensor(sensor_id, **retrieval_kwargs)
-
-    # Get sensor coordinates
-    lat = float(sensor.metadata["location.latitude"])
-    lon = float(sensor.metadata["location.longitude"])
-
-    # Get IRCELINE metadata
-    irceline.Metadata(**retrieval_kwargs)
-
-    # Identify PM time series of nearest PM-measuring stations
-    nearest = {}
-    for (phen_short, phen_long) in (("pm10", "Particulate Matter < 10 µm"),
-                                    ("pm2.5", "Particulate Matter < 2.5 µm")):
-        results = irceline.Metadata.query_time_series(phenomenon=phen_long,
-                                                      lat_nearest=lat,
-                                                      lon_nearest=lon)
-        first_result = (results
-                        .reset_index()
-                        .iloc[0]
-                        .rename({"id": "time series id"}))
-        nearest[phen_short] = first_result
-
-    return pd.DataFrame(nearest)
+    return combined_data, plots

@@ -10,18 +10,33 @@ import pandas as pd
 from pandas.io.json import json_normalize
 from matplotlib import pyplot as plt
 
-from utils import CACHE_DIR, retrieve, haversine, _date_formatter
+from utils import (CACHE_DIR, BaseSensor, retrieve, haversine,
+                   label_coordinates, _date_formatter)
 
 # API URLs
 ARCHIVE_FILENAME_PATTERN = "{date}_{sensor_type}_sensor_{sensor_id}.csv"
 ARCHIVE_URL_PATTERN = "https://archive.luftdaten.info/{date}/{filename}"
 PROX_SEARCH_URL_PATTERN = ("https://api.luftdaten.info/v1/filter/"
                            "area={lat},{lon},{radius}")
-SENSOR_URL_PATTERN = "https://api.luftdaten.info/v1/sensor/{sensor_id}/"
+SENSOR_METADATA_URL_PATTERN = ("https://api.luftdaten.info/v1/sensor/"
+                               "{sensor_id}/")
+
+UNITS = {"pm2.5": "µg/m³",
+         "pm10": "µg/m³",
+         "humidity": "%rh",
+         "temperature": "°C"}
 
 
-class Sensor:
-    """A sensor registered on luftdaten.info."""
+class Sensor(BaseSensor):
+    """A sensor registered on luftdaten.info.
+
+    Properties in addition to those of BaseSensor:
+        metadata_url: URL on luftdaten.info that provides the sensor's
+            metadata and current measurements.
+
+    sensor_type can be, for example, "SDS011" (particulate matter) or
+    "DHT22" (temperature and relative humidity).
+    """
 
     def __init__(self, sensor_id, **retrieval_kwargs):
         """Establish sensor properties.
@@ -30,42 +45,14 @@ class Sensor:
             sensor_id: luftdaten.info sensor id
             retrieval_kwargs: keyword arguments to pass to retrieve
                 function
-
-        Properties:
-            sensor_id: luftdaten.info sensor ID
-            url: URL on luftdaten.info that provides the sensor's
-                metadata and current measurements.
-            metadata: pandas dataframe of sensor metadata from
-                luftdaten.info
-            sensor_type: sensor model, e.g. "SDS011" (particulate
-                matter) or "DHT22" (temperature and relative humidity)
-            current_values: dictionary of current measurements
-            measurements: pandas dataframe of particulate matter
-                measurements, empty at initialization
-            hourly_means: hourly means of measurements where a minimum
-                number of data points exist
-            figs: placeholder for plots of measurements
-            figs_hourly: placeholder for plots of hourly means
         """
-        self.sensor_id = sensor_id
-        self.url = SENSOR_URL_PATTERN.format(sensor_id=sensor_id)
-        self.metadata = None
-        self.sensor_type = None
-        self.current_values = None
-        self.measurements = None
-        self.hourly_means = None
-        self.figs = {}
-        self.figs_hourly = {}
-        self.update(**retrieval_kwargs)
+        super().__init__(sensor_id=sensor_id, affiliation="luftdaten.info")
+        self.metadata_url = (SENSOR_METADATA_URL_PATTERN
+                             .format(sensor_id=sensor_id))
+        self.get_metadata(**retrieval_kwargs)
 
-    def __repr__(self):
-        """Instance representation."""
-        memory_address = hex(id(self))
-        return ("<luftdaten.info sensor {} at {}>"
-                .format(self.sensor_id, memory_address))
-
-    def update(self, **retrieval_kwargs):
-        """Update sensor metadata and current measurements from cache or
+    def get_metadata(self, **retrieval_kwargs):
+        """Get sensor metadata and current measurements from cache or
         luftdaten.info API.
 
         Args:
@@ -77,33 +64,42 @@ class Sensor:
         """
 
         # Get and cache metadata and measurements of past five minutes
-        filename = os.path.basename(self.url.rstrip("/")) + ".json"
+        filename = os.path.basename(self.metadata_url.rstrip("/")) + ".json"
         filepath = os.path.join(CACHE_DIR, filename)
-        parsed = retrieve(filepath, self.url,
+        parsed = retrieve(filepath, self.metadata_url,
                           "sensor {} metadata from luftdaten.info"
                           .format(self.sensor_id), **retrieval_kwargs)
 
-        # Split metadata from measurements; keep only latest measurements.
         try:
             metadata = (parsed
                         .drop(columns=["sensordatavalues", "timestamp"])
                         .iloc[0])
         except ValueError:
-            warnings.warn("Sensor metadata could not be retrieved. Sensor "
-                          "does not appear to be online.")
+            warnings.warn("Sensor metadata could not be retrieved")
         else:
             metadata.name = "metadata"
             self.metadata = metadata
+
+            # Extract metadata into corresponding properties
             self.sensor_type = metadata["sensor.sensor_type.name"]
+            self.lat = float(metadata["location.latitude"])
+            self.lon = float(metadata["location.longitude"])
+            self.label = "at " + label_coordinates(self.lat, self.lon)
+
+            # Extract most current measurements
             current = parsed["sensordatavalues"].iloc[-1]
             current = (json_normalize(current)
                        .replace({"P1": "pm10", "P2": "pm2.5"})
                        .set_index("value_type")["value"])
             current = (pd.to_numeric(current)
                        .replace([999.9, 1999.9], pd.np.nan))
-            self.current_values = dict(current)
+            self.current_measurements = dict(current)
+            self.phenomena = list(current.index)
+            self.units = {phenomenon: UNITS[phenomenon]
+                          for phenomenon in UNITS
+                          if phenomenon in self.phenomena}
 
-    def get_data(self, start_date, end_date, **retrieval_kwargs):
+    def get_measurements(self, start_date, end_date, **retrieval_kwargs):
         """Get measurement data of the sensor in a given period.
 
         Data are read from cache if available, or downloaded from
@@ -112,17 +108,17 @@ class Sensor:
         associated with it, calling this method replaces them.
 
         Args:
-            start_date: first date of data to retrieve, in
-                ISO 8601 format, e.g. "2017-07-01"
-            end_date: first date of data to retrieve, same format as
-                start_date
+            start_date: first date of data to retrieve, in ISO 8601
+                (YYYY-MM-DD) format
+            end_date: last date of data to retrieve, in ISO 8601
+                (YYYY-MM-DD) format
             retrieval_kwargs: keyword arguments to pass to retrieve
                 function
         """
         sid = self.sensor_id
         if self.sensor_type is None:
-            self.sensor_type = input("Sensor type could not be determined "
-                                     "from metadata. Enter sensor type: ")
+            self.sensor_type = input("Type of sensor {} has not been set yet. "
+                                     "Enter sensor type: ".format(sid))
         stype = self.sensor_type.lower()
 
         # Get and process the data file for each date in the requested range
@@ -164,8 +160,7 @@ class Sensor:
             self.measurements = pd.concat(daily_data)
         else:
             self.measurements = None
-            self.hourly_means = None
-            print("No data for sensor", self.sensor_id)
+            print("No data for sensor", sid)
             return
 
         # Remove duplicates
@@ -173,10 +168,9 @@ class Sensor:
         self.measurements = self.measurements[~duplicates]
 
         self.measurements.sort_index(inplace=True)
-        self.clean_data()
-        self.calculate_hourly_means()
+        self.clean_measurements()
 
-    def clean_data(self):
+    def clean_measurements(self):
         """Remove invalid measurements.
 
         Having several consecutive values under 1 µg/m³ indicates a
@@ -197,72 +191,6 @@ class Sensor:
 
         # Remove invalid values
         self.measurements[dead_5_consecutive] = pd.np.nan
-
-    @property
-    def intervals(self):
-        """Histogram of measurement intervals in seconds.
-
-        Returns:
-            Histogram of measurement intervals as a series, index-sorted
-        """
-        diffs = self.measurements.index.to_series().diff()
-        diffs_seconds = diffs.dt.seconds
-        return diffs_seconds.value_counts().sort_index()
-
-    def calculate_hourly_means(self, min_count=10):
-        """Calculate hourly means.
-
-        Args:
-            min_count: minimum number of data points per hour required
-                to calculate means
-        """
-        resampler = self.measurements.resample("h", kind="period")
-        self.hourly_means = (resampler.sum(min_count=min_count)
-                             / resampler.count())
-        self.hourly_means.index.name = "Period"
-
-    def plot_measurements(self):
-        """Plot data as time series.
-
-        Returns:
-            Matplotlib AxesSubplot
-        """
-        for measure in self.measurements:
-            self.figs[measure], ax = plt.subplots()
-            title = ("Sensor {} - {} Measurements"
-                     .format(self.sensor_id, measure.upper()))
-            (self.measurements[measure]
-             .plot(y="value", ax=ax, figsize=(12, 8), title=title, rot=90))
-            ax.set(xlabel="Timestamp",
-                   ylabel="Concentration in µg/m³",
-                   ylim=(0, None))
-            # ax.xaxis.set_major_formatter(_date_formatter)
-            # FIXME: Shows date as 1146-12-24
-            plt.xticks(horizontalalignment="center")
-        plt.show()
-        return ax
-
-    def plot_hourly_means(self):
-        """Plot data as time series.
-
-        Returns:
-            Matplotlib AxesSubplot
-        """
-        # TODO: Clean up x label format
-        for measure in self.hourly_means:
-            self.figs_hourly[measure], ax = plt.subplots()
-            title = ("Sensor {} - {} Hourly Means"
-                     .format(self.sensor_id, measure.upper()))
-            (self.hourly_means[measure]
-             .plot(y="value", figsize=(12, 8), ax=ax, title=title, rot=90))
-            ax.set(xlabel="Timestamp",
-                   ylabel="Concentration in µg/m³",
-                   ylim=(0, None))
-            # ax.xaxis.set_major_formatter(_date_formatter)
-            # FIXME: Shows date as 1146-12-24
-            plt.xticks(horizontalalignment="center")
-        plt.show()
-        return ax
 
 
 def search_proximity(lat=50.848, lon=4.351, radius=8):
@@ -308,9 +236,9 @@ def search_proximity(lat=50.848, lon=4.351, radius=8):
 
 
 def evaluate_near_sensors(start_date, end_date, lat=50.848, lon=4.351,
-                          radius=8, **retrieval_kwargs):
-    """Create Sensor instances for all sensors near a location and get
-    their data.
+                          radius=8, sensor_type="SDS011", **retrieval_kwargs):
+    """Create Sensor instances for all sensors of sensor_type near a
+    location and get their measurement data.
 
     Coordinates and radius default to Brussels.
 
@@ -320,6 +248,7 @@ def evaluate_near_sensors(start_date, end_date, lat=50.848, lon=4.351,
         lat: see search_proximity
         lon: see search_proximity
         radius: see search_proximity
+        sensor_type: sensor type label, e.g. "SDS011" or "DHT22"
         retrieval_kwargs: keyword arguments to pass to retrieve function
 
     Returns:
@@ -329,17 +258,26 @@ def evaluate_near_sensors(start_date, end_date, lat=50.848, lon=4.351,
     """
     near_sensors = search_proximity(lat=lat, lon=lon, radius=radius)
 
-    # Select PM sensors, disregard temperature/humidity sensors
-    near_sds011 = near_sensors[near_sensors["sensor_type"] == "SDS011"]
+    # Filter by sensor type
+    near_sensors = near_sensors[near_sensors["sensor_type"] == sensor_type]
+
+    # Create list of Sensor instances
     sensors = [Sensor(sensor_id, **retrieval_kwargs)
-               for sensor_id in near_sds011.index]
+               for sensor_id in near_sensors.index]
 
     sensors.sort(key=lambda sensor: sensor.sensor_id)
+    hourly_means_pieces = []
+    column_keys = []
     for sensor in sensors:
-        sensor.get_data(start_date, end_date, **retrieval_kwargs)
-    hourly_means = pd.concat([sensor.hourly_means for sensor in sensors],
-                             axis=1,
-                             keys=[sensor.sensor_id for sensor in sensors])
+        sensor.get_measurements(start_date, end_date, **retrieval_kwargs)
+        try:
+            sensor_hourly_means = sensor.get_hourly_means()
+        except AttributeError:
+            continue
+        else:
+            hourly_means_pieces.append(sensor_hourly_means)
+            column_keys.append(sensor.sensor_id)
+    hourly_means = pd.concat(hourly_means_pieces, axis=1, keys=column_keys)
     hourly_means = hourly_means.swaplevel(0, 1, axis=1)
     hourly_means.sort_index(axis=1, level=0, inplace=True)
     for measure in ("pm10", "pm2.5"):

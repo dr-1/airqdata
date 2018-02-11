@@ -16,6 +16,12 @@ from matplotlib import pyplot as plt
 
 CACHE_DIR = "./cache"
 
+# Collection of equivalent phenomenon names for comparisons between
+# sensors with different affiliations
+EQUIVALENT_PHENOMENA = ({"pm2.5", "Particulate Matter < 2.5 µm"},
+                        {"pm10", "Particulate Matter < 10 µm"},
+                        {"temperature"})
+
 
 class BaseSensor:
     """Generic sensor.
@@ -273,6 +279,20 @@ def haversine(lat1, lon1, lat2, lon2):
     distance = c * radius
 
     return distance
+
+
+def label_coordinates(lat, lon):
+    """Combine a set of numeric coordinates into a string with
+    hemisphere indicators.
+
+    Args:
+        lat: latitude as float or int
+        lon: longitude as float or int
+    """
+    ns_hemisphere = "N" if lat > 0 else "S"
+    ew_hemisphere = "E" if lon > 0 else "W"
+    label = "{}°{} {}°{}".format(lat, ns_hemisphere, lon, ew_hemisphere)
+    return label
 
 
 # Prepare caching
