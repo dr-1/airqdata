@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Utility functions and constants."""
+"""Utility functions, constants and base classes."""
 
 import os
 import json
@@ -15,6 +15,161 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 
 CACHE_DIR = "./cache"
+
+
+class BaseSensor:
+    """Generic sensor.
+
+    Properties:
+        sensor_id: unique identifier of the sensor
+        label: sensor or location label
+        affiliation: organization that the sensor belongs to
+        metadata: pandas dataframe of sensor metadata
+        lat: latitude of location
+        lon: longitude of location
+        alt: altitude of location
+        sensor_type: name of the sensor type or model
+        current_measurements: dict of current measurements
+        measurements: pandas dataframe of measurements; timeseries
+            indexed by datetime values; one column per phenomenon
+        intervals: histogram of times between measurements
+        phenomena: names of phenomena measured
+        units: dict of measurement column names to units of measurement,
+            e.g. {"pm2.5": "µg/m³"}
+    """
+
+    def __init__(self, sensor_id, affiliation=None):
+        """Create a Sensor object.
+
+        Args:
+            sensor_id: unique identifier of the sensor
+            affiliation: organization or collection of organizations
+                that the sensor belongs to
+        """
+        self.sensor_id = sensor_id
+        self.label = None
+        self.affiliation = affiliation
+        self.metadata = None
+        self.lat = None
+        self.lon = None
+        self.alt = None
+        self.sensor_type = None
+        self.current_measurements = None
+        self.measurements = None
+        self.phenomena = None
+        self.units = None
+
+    def __repr__(self):
+        """Instance representation."""
+        memory_address = hex(id(self))
+        if self.affiliation is not None:
+            repr_string = ("<{} sensor {} at {}>"
+                           .format(self.affiliation, self.sensor_id,
+                                   memory_address))
+        else:
+            repr_string = ("<Sensor {} without affiliation at {}>"
+                           .format(self.sensor_id, memory_address))
+        return repr_string
+
+    def get_metadata(self):
+        """Get sensor metadata and current measurements if attached."""
+        raise NotImplementedError("To be implemented in child classes")
+
+    def get_measurements(self):
+        """Get measurement data."""
+        raise NotImplementedError("To be implemented in child classes")
+
+    def clean_measurements(self):
+        """Clean measurement data."""
+        raise NotImplementedError("To be implemented in child classes")
+
+    @property
+    def intervals(self):
+        """Histogram of times between measurements.
+
+        Returns:
+            Histogram of measurement intervals as a series, index-sorted
+        """
+        return self.measurements.index.to_series().diff().value_counts()
+
+    def get_hourly_means(self, min_count=10):
+        """Calculate hourly means from measurement data.
+
+        Args:
+            min_count: minimum number of data points per hour required
+                to calculate means; periods failing this requirement
+                will be pd.np.nan
+
+        Returns:
+            pandas dataframe of hourly means of measurements; timeseries
+            indexed by hourly datetime values, with one column per
+                phenomenon
+        """
+        resampler = self.measurements.resample("h", kind="period")
+        hourly_means = resampler.sum(min_count=min_count) / resampler.count()
+        hourly_means.index.name = "Period"
+        return hourly_means
+
+    def _plot_data(self, data, aggregation_level="Measurements"):
+        """Plot time series.
+
+        Args:
+            data: timeseries of one or more measures as a Pandas
+                dataframe
+            aggregation_level: aggregation level of the data, e.g.
+                "Hourly Means", or "Measurements" for individual data
+                points that are not aggregated
+
+        Returns:
+            Matplotlib figure
+            Matplotlib axes
+
+        Raises:
+            KeyError if unit of measurement is not defined
+        """
+        for phenomenon in data:
+            try:
+                unit = self.units[phenomenon]
+            except KeyError:
+                raise KeyError("Unit is not defined")
+            fig, ax = plt.subplots()
+            title = ("{affiliation} Sensor {sid} {label}\n{phenomenon} {level}"
+                     .format(affiliation=self.affiliation or "Unaffiliated",
+                             sid=self.sensor_id,
+                             label=self.label or "Unlabeled",
+                             phenomenon=phenomenon.upper(),
+                             level=aggregation_level))
+            data.plot(ax=ax, figsize=(12, 8), title=title, rot=90)
+            ymin = min(0, data.min().min())  # Allows values below 0
+            ax.set(xlabel="Timestamp",
+                   ylabel="{} in {}".format(phenomenon, unit),
+                   ylim=(ymin, None))
+            plt.xticks(horizontalalignment="center")
+        plt.show()
+        return fig, ax
+
+    def plot_measurements(self):
+        """Plot measurements as time series.
+
+        Returns:
+            Matplotlib figure
+            Matplotlib axes
+        """
+        return self._plot_data(self.measurements)
+
+    def plot_hourly_means(self, *args, **kwargs):
+        """Plot hourly means of measurements as time series.
+
+        Args:
+            args: positional arguments to pass to get_hourly_means
+            kwargs: keyword arguments to pass to get_hourly_means
+
+        Returns:
+            Matplotlib figure
+            Matplotlib axes
+        """
+        hourly_means = self.get_hourly_means(*args, **kwargs)
+        return self._plot_data(hourly_means, aggregation_level="Hourly Means")
 
 
 def read_json(file, *_args, **_kwargs):
