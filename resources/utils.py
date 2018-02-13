@@ -145,7 +145,7 @@ class BaseSensor:
                              label=self.label or "Unlabeled",
                              phenomenon=phenomenon.upper(),
                              level=aggregation_level))
-            data.plot(ax=ax, figsize=(12, 8), title=title, rot=90)
+            data[phenomenon].plot(ax=ax, figsize=(12, 8), title=title, rot=90)
             ymin = min(0, data.min().min())  # Allows values below 0
             ax.set(xlabel="Timestamp",
                    ylabel="{} in {}".format(phenomenon, unit),
