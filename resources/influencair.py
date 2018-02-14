@@ -20,36 +20,45 @@ MAP_URL = "http://influencair.be/map-brussels/"
 SENSOR_INFO_CACHE_FILE = CACHE_DIR + "/civic_labs_sensors.csv"
 
 
-def get_sensor_info(**retrieval_kwargs):
-    """Retrieve sensor information from the InfluencAir project.
+class Metadata:
+    """Sensor information as recorded on InfluencAir's Google Sheet.
 
-    Args:
-        retrieval_kwargs: keyword arguments to pass to retrieve function
-
-    Returns:
-        Dataframe of sensors with chip ID, sensor IDs of PM sensors and
-            humidity/temperature sensors, address, floor number and side
-            of the building that the sensors are installed on
-
-    Raises:
-        KeyError if sheet structure does not match listed columns
+    Properties:
+        sensors: dataframe of sensors with chip ID, sensor IDs of PM
+            sensors and humidity/temperature sensors, label, address,
+            floor number and side of the building that the sensors are
+            installed on
+        initialized: boolean to indicate that __init__ has run
     """
-    sensor_info = retrieve(SENSOR_INFO_CACHE_FILE, SENSOR_SHEET_URL,
-                           "InfluencAir sensor information",
-                           read_func=pd.read_csv,
-                           read_func_kwargs={"header": 1, "dtype": "object"},
-                           **retrieval_kwargs)
-    try:
-        sensor_info = (sensor_info[["Chip ID", "PM Sensor ID",
-                                    "Hum/Temp Sensor ID", "Address", "Floor",
-                                    "Side (Street/Garden)"]]
-                       .rename(columns={"Side (Street/Garden)": "Side"}))
-    except KeyError:
-        raise KeyError("Could not get columns. Check if the structure or "
-                       "labels of the InfluencAir sensor Google Sheet have "
-                       "changed.")
-    return sensor_info
+    sensors = None
+    initialized = False
 
+    @classmethod
+    def __init__(cls, **retrieval_kwargs):
+        """Retrieve sensor information from the InfluencAir project.
 
-if __name__ == "__main__":
-    sensor_info = get_sensor_info()
+        Args:
+            retrieval_kwargs: keyword arguments to pass to retrieve
+                function
+
+        Raises:
+            KeyError if sheet structure does not match listed columns
+        """
+        sensor_info = retrieve(SENSOR_INFO_CACHE_FILE, SENSOR_SHEET_URL,
+                               "InfluencAir sensor information",
+                               read_func=pd.read_csv,
+                               read_func_kwargs={"header": 1,
+                                                 "dtype": "object"},
+                               **retrieval_kwargs)
+        try:
+            sensor_info = (sensor_info[["Chip ID", "PM Sensor ID",
+                                        "Hum/Temp Sensor ID", "Label",
+                                        "Address", "Floor",
+                                        "Side (Street/Garden)"]]
+                           .rename(columns={"Side (Street/Garden)": "Side"}))
+        except KeyError:
+            raise KeyError("Could not get columns. Check if the structure or "
+                           "labels of the InfluencAir sensor Google Sheet "
+                           "have changed.")
+        cls.sensors = sensor_info
+        cls.initialized = True
