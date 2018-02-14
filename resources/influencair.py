@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-"""Access Civic Labs Belgium resources."""
+"""Access InfluencAir resources.
+
+InfluencAir is a project created by Civic Lab Brussels.
+"""
 
 import pandas as pd
 
@@ -18,8 +21,7 @@ SENSOR_INFO_CACHE_FILE = CACHE_DIR + "/civic_labs_sensors.csv"
 
 
 def get_sensor_info(**retrieval_kwargs):
-    """Download information on the sensors deployed in Civic Labs'
-    InfluencAir project from its Google Sheet and cache it.
+    """Retrieve sensor information from the InfluencAir project.
 
     Args:
         retrieval_kwargs: keyword arguments to pass to retrieve function
@@ -33,7 +35,7 @@ def get_sensor_info(**retrieval_kwargs):
         KeyError if sheet structure does not match listed columns
     """
     sensor_info = retrieve(SENSOR_INFO_CACHE_FILE, SENSOR_SHEET_URL,
-                           "Civic Labs sensor information",
+                           "InfluencAir sensor information",
                            read_func=pd.read_csv,
                            read_func_kwargs={"header": 1, "dtype": "object"},
                            **retrieval_kwargs)
@@ -44,7 +46,7 @@ def get_sensor_info(**retrieval_kwargs):
                        .rename(columns={"Side (Street/Garden)": "Side"}))
     except KeyError:
         raise KeyError("Could not get columns. Check if the structure or "
-                       "labels of the Civic Labs sensor Google Sheet have "
+                       "labels of the InfluencAir sensor Google Sheet have "
                        "changed.")
     return sensor_info
 

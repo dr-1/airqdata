@@ -4,7 +4,7 @@ A toolkit to retrieve, analyze and visualize data from a variety of air quality
 sensors.
 
 The scripts include tools to
-* wrap the APIs of various data providers, including Civic Labs Belgium's
+* wrap the APIs of various data providers, including Civic Lab Brussels'
 [InfluencAir](https://influencair.be/) project, the
 [luftdaten.info](https://luftdaten.info/) project,
 [madavi.de](https://www.madavi.de/ok-lab-stuttgart/) and

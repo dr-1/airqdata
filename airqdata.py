@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-"""Combine resources of Civic Labs Belgium, luftdaten.info, madavi.de
-and irceline.be.
+"""Combine resources of the InfluencAir project, luftdaten.info,
+madavi.de and irceline.be.
 """
 
 import sys
@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 # run those modules by themselves from their directory.
 ("resources" in sys.path) or sys.path.append("resources")
 
-from resources import civiclabs
+from resources import influencair
 from resources import luftdaten
 from resources import madavi
 from resources import irceline
