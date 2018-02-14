@@ -5,7 +5,6 @@ madavi.de and irceline.be.
 """
 
 import sys
-from itertools import chain
 
 import pandas as pd
 from matplotlib import pyplot as plt

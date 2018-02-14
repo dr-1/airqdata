@@ -11,7 +11,7 @@ from pandas.io.json import json_normalize
 from matplotlib import pyplot as plt
 
 from utils import (CACHE_DIR, BaseSensor, retrieve, haversine,
-                   label_coordinates, _date_formatter)
+                   label_coordinates)
 
 # API
 API_DOCUMENTATION_URL = "https://github.com/opendata-stuttgart/meta/wiki/APIs"
