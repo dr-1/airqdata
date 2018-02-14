@@ -7,6 +7,8 @@ InfluencAir is a project created by Civic Lab Brussels.
 
 import pandas as pd
 
+import luftdaten
+import madavi
 from utils import CACHE_DIR, retrieve
 
 # Resources
@@ -62,3 +64,83 @@ class Metadata:
                            "have changed.")
         cls.sensors = sensor_info
         cls.initialized = True
+
+
+class Sensor(luftdaten.Sensor):
+    """A sensor of the InfluencAir project, registered on
+    luftdaten.info.
+    """
+
+    def __init__(self, sensor_id, **retrieval_kwargs):
+        """Establish sensor properties.
+
+        Properties in addition to those of luftdaten.Sensor:
+            luftdaten_metadata_url: metadata_url inherited from parent
+                class
+            luftdaten_metadata: metadata inherited from parent class
+            influencair_metadata: metadata retrieved from InfluencAir's
+                Google Sheet
+            chip_id: ESP8266 or other chip ID as used by madavi.de API
+
+        Args:
+            sensor_id: luftdaten.info sensor id
+            retrieval_kwargs: keyword arguments to pass to retrieve
+                function
+        """
+        super().__init__(sensor_id=sensor_id, **retrieval_kwargs)
+
+        # Replace affiliation with combined value
+        self.affiliation = "luftdaten.info & InfluencAir"
+
+        self.luftdaten_metadata_url = self.metadata_url
+        self.luftdaten_metadata = self.metadata
+        self.influencair_metadata = None
+        self.chip_id = None
+        self.get_influencair_metadata(**retrieval_kwargs)
+
+    def get_influencair_metadata(self, **retrieval_kwargs):
+        """Get sensor metadata from InfluencAir's Google Sheet.
+
+        Args:
+            retrieval_kwargs: keyword arguments to pass to retrieve
+                function
+        """
+
+        # Ensure that metadata can be queried
+        Metadata.initialized or Metadata(**retrieval_kwargs)
+
+        id_match_rows = ((Metadata.sensors["PM Sensor ID"] == self.sensor_id)
+                         | (Metadata.sensors["Hum/Temp Sensor ID"]
+                            == self.sensor_id))
+        self.influencair_metadata = (Metadata.sensors[id_match_rows].iloc[0]
+                                     .drop(labels=["PM Sensor ID",
+                                                   "Hum/Temp Sensor ID"]))
+        self.chip_id = self.influencair_metadata["Chip ID"]
+
+        # Replace label from parent class with label from Google Sheet
+        label = self.influencair_metadata["Label"]
+        if label:
+            self.label = label
+
+    def get_luftdaten_metadata(self, **retrieval_kwargs):
+        """Get sensor metadata and current measurements from cache or
+        luftdaten.info API.
+
+        Args:
+            retrieval_kwargs: keyword arguments to pass to retrieve
+                function
+
+        Warns:
+            UserWarning if sensor does not appear to be online
+        """
+        self.get_metadata(**retrieval_kwargs)
+        self.luftdaten_metadata = self.metadata
+
+    def open_madavi_graphs(self):
+        """Open madavi.de page showing graphs of the sensor's
+        measurement history."""
+        if self.sensor_type.lower().startswith("dht"):
+            sensor_type = "dht"
+        else:
+            sensor_type = self.sensor_type.lower()
+        madavi.open_graphs(self.chip_id, sensor_model=sensor_type)
