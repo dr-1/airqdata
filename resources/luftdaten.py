@@ -42,9 +42,6 @@ class Sensor(BaseSensor):
     Properties in addition to those of BaseSensor:
         metadata_url: URL on luftdaten.info that provides the sensor's
             metadata and current measurements.
-
-    sensor_type can be, for example, "SDS011" (particulate matter) or
-    "DHT22" (temperature and relative humidity).
     """
 
     def __init__(self, sensor_id, **retrieval_kwargs):
