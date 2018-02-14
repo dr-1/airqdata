@@ -6,8 +6,14 @@ import pandas as pd
 
 from utils import CACHE_DIR, retrieve
 
+# Resources
 SENSOR_SHEET_URL = ("https://docs.google.com/spreadsheets/d/1J8WTKryYjZHfBQrMS"
                     "Yjwj6uLOBmWWLftaTqeicKVfYE/export?format=csv")
+WEBSITE_URLS = {"https://influencair.be",
+                "https://www.meetup.com/Civic-Lab-Brussels"}
+MAP_URL = "http://influencair.be/map-brussels/"
+
+# Caching
 SENSOR_INFO_CACHE_FILE = CACHE_DIR + "/civic_labs_sensors.csv"
 
 

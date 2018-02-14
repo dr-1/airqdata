@@ -13,13 +13,22 @@ from matplotlib import pyplot as plt
 from utils import (CACHE_DIR, BaseSensor, retrieve, haversine,
                    label_coordinates, _date_formatter)
 
-# API URLs
+# API
+API_DOCUMENTATION_URL = "https://github.com/opendata-stuttgart/meta/wiki/APIs"
+API_BASE_URL = "https://api.luftdaten.info/v1/"
+API_ENDPOINTS = {"sensor metadata pattern":
+                 API_BASE_URL + "sensor/{sensor_id}/",
+                 "proximity search pattern":
+                 API_BASE_URL + "filter/area={lat},{lon},{radius}"}
+
+# Data archive
+ARCHIVE_BASE_URL = "https://archive.luftdaten.info/"
+ARCHIVE_URL_PATTERN = ARCHIVE_BASE_URL + "{date}/{filename}"
 ARCHIVE_FILENAME_PATTERN = "{date}_{sensor_type}_sensor_{sensor_id}.csv"
-ARCHIVE_URL_PATTERN = "https://archive.luftdaten.info/{date}/{filename}"
-PROX_SEARCH_URL_PATTERN = ("https://api.luftdaten.info/v1/filter/"
-                           "area={lat},{lon},{radius}")
-SENSOR_METADATA_URL_PATTERN = ("https://api.luftdaten.info/v1/sensor/"
-                               "{sensor_id}/")
+
+# Other resources
+WEBSITE_URL = "https://luftdaten.info"
+MAP_URL = "https://maps.luftdaten.info"
 
 UNITS = {"pm2.5": "µg/m³",
          "pm10": "µg/m³",
@@ -47,7 +56,7 @@ class Sensor(BaseSensor):
                 function
         """
         super().__init__(sensor_id=sensor_id, affiliation="luftdaten.info")
-        self.metadata_url = (SENSOR_METADATA_URL_PATTERN
+        self.metadata_url = (API_ENDPOINTS["sensor metadata pattern"]
                              .format(sensor_id=sensor_id))
         self.get_metadata(**retrieval_kwargs)
 
@@ -208,7 +217,8 @@ def search_proximity(lat=50.848, lon=4.351, radius=8):
         and distances in kilometers from the search center, indexed by
         sensor ID
     """
-    url = PROX_SEARCH_URL_PATTERN.format(lat=lat, lon=lon, radius=radius)
+    url = (API_ENDPOINTS["proximity search pattern"]
+           .format(lat=lat, lon=lon, radius=radius))
     _json = requests.get(url).json()
     sensors = json_normalize(_json)
     sensors = (sensors[["sensor.id", "sensor.sensor_type.name",

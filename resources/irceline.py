@@ -11,12 +11,19 @@ import pandas as pd
 from utils import (CACHE_DIR, EQUIVALENT_PHENOMENA, BaseSensor, retrieve,
                    haversine)
 
-# API URLs
-PHENOMENA_URL = "https://geo.irceline.be/sos/api/v1/phenomena"
-STATIONS_URL = "https://geo.irceline.be/sos/api/v1/stations"
-TIME_SERIES_URL = "https://geo.irceline.be/sos/api/v1/timeseries"
-DATA_URL_PATTERN = (TIME_SERIES_URL + "/{time_series_id}/getData?"
-                    "timespan={start}/{end}")
+# API
+API_DOCUMENTATION_URL = "https://geo.irceline.be/sos/static/doc/api-doc/"
+API_BASE_URL = "https://geo.irceline.be/sos/api/v1/"
+API_ENDPOINTS = {"phenomena": API_BASE_URL + "phenomena",
+                 "stations": API_BASE_URL + "stations",
+                 "timeseries": API_BASE_URL + "timeseries",
+                 "data pattern":
+                 API_BASE_URL + ("timeseries/{time_series_id}/getData?"
+                                 "timespan={start}/{end}")}
+
+# Other resources
+WEBSITE_URL = "http://www.irceline.be"
+VIEWER_URL = "http://viewer.irceline.be"
 
 # Caching
 PHENOMENA_CACHE_FILE = CACHE_DIR + "/irceline_phenomena.json"
@@ -63,7 +70,7 @@ class Metadata:
             retrieval_kwargs: keyword arguments to pass to retrieve
                 function
         """
-        phenomena = retrieve(PHENOMENA_CACHE_FILE, PHENOMENA_URL,
+        phenomena = retrieve(PHENOMENA_CACHE_FILE, API_ENDPOINTS["phenomena"],
                              "phenomenon metadata", **retrieval_kwargs)
         phenomena["id"] = phenomena["id"].astype("int")
         phenomena = phenomena.set_index("id").sort_index()
@@ -79,7 +86,7 @@ class Metadata:
         """
 
         # Retrieve and reshape data
-        stations = retrieve(STATIONS_CACHE_FILE, STATIONS_URL,
+        stations = retrieve(STATIONS_CACHE_FILE, API_ENDPOINTS["stations"],
                             "station metadata", **retrieval_kwargs)
         stations = (stations
                     .drop(columns=["geometry.type", "type"])
@@ -114,7 +121,8 @@ class Metadata:
             return phenomenon_name
 
         # Retrieve and reshape data
-        time_series = retrieve(TIME_SERIES_CACHE_FILE, TIME_SERIES_URL,
+        time_series = retrieve(TIME_SERIES_CACHE_FILE,
+                               API_ENDPOINTS["timeseries"],
                                "time series metadata", **retrieval_kwargs)
         time_series["id"] = time_series["id"].astype("int")
         time_series = (time_series
@@ -342,9 +350,10 @@ class Sensor(BaseSensor):
         query_end_local -= pd.Timedelta(1, "s")
         query_end_local_str = query_end_local.strftime("%Y-%m-%dT%H:%M:%S")
 
-        url = DATA_URL_PATTERN.format(time_series_id=self.sensor_id,
-                                      start=query_start_local_str,
-                                      end=query_end_local_str)
+        url = (API_ENDPOINTS["data pattern"]
+               .format(time_series_id=self.sensor_id,
+                       start=query_start_local_str,
+                       end=query_end_local_str))
 
         # TODO: Split response into days and cache as daily files; check cache
         #       day by day. Find longest missing intervals to make as few
