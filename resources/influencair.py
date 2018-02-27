@@ -106,6 +106,10 @@ class Sensor(luftdaten.Sensor):
         Args:
             retrieval_kwargs: keyword arguments to pass to retrieve
                 function
+
+        Raises:
+            ValueError if sensor_id is not listed in InfluencAir's
+                Google Sheet
         """
 
         # Ensure that metadata can be queried
@@ -114,6 +118,9 @@ class Sensor(luftdaten.Sensor):
         id_match_rows = ((Metadata.sensors["PM Sensor ID"] == self.sensor_id)
                          | (Metadata.sensors["Hum/Temp Sensor ID"]
                             == self.sensor_id))
+        if sum(id_match_rows) == 0:
+            raise ValueError("Sensor ID {} is not listed in InfluencAir "
+                             "metadata sheet".format(self.sensor_id))
         self.influencair_metadata = (Metadata.sensors[id_match_rows].iloc[0]
                                      .drop(labels=["PM Sensor ID",
                                                    "Hum/Temp Sensor ID"]))
