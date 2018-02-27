@@ -128,18 +128,21 @@ class BaseSensor:
             show: call plt.show; set to False to modify plots
 
         Returns:
-            Matplotlib figure
-            Matplotlib axes
+            List of Matplotlib figures
+            List of Matplotlib axes
 
         Raises:
             KeyError if unit of measurement is not defined
         """
+        figs, axes = [], []
         for phenomenon in data:
             try:
                 unit = self.units[phenomenon]
             except KeyError:
                 raise KeyError("Unit is not defined")
             fig, ax = plt.subplots()
+            figs.append(fig)
+            axes.append(ax)
             title = ("{affiliation} Sensor {sid} {label}\n{phenomenon} {level}"
                      .format(affiliation=self.affiliation or "Unaffiliated",
                              sid=self.sensor_id,
@@ -154,7 +157,7 @@ class BaseSensor:
             plt.xticks(horizontalalignment="center")
         if show:
             plt.show()
-        return fig, ax
+        return figs, axes
 
     def plot_measurements(self, show=True):
         """Plot measurements as time series.
@@ -163,8 +166,8 @@ class BaseSensor:
             call plt.show; set to False to modify plots
 
         Returns:
-            Matplotlib figure
-            Matplotlib axes
+            List of Matplotlib figures
+            List of Matplotlib axes
         """
         return self._plot_data(self.measurements, show=show)
 
@@ -177,8 +180,8 @@ class BaseSensor:
             show: call plt.show; set to False to modify plots
 
         Returns:
-            Matplotlib figure
-            Matplotlib axes
+            List of Matplotlib figures
+            List of Matplotlib axes
         """
         hourly_means = self.get_hourly_means(*args, **kwargs)
         return self._plot_data(hourly_means, show=show,

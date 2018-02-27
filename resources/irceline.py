@@ -402,8 +402,8 @@ class Sensor(BaseSensor):
             call plt.show; set to False to modify plots
 
         Returns:
-            Matplotlib figure
-            Matplotlib axes
+            List of Matplotlib figures
+            List of Matplotlib axes
         """
         return self.plot_hourly_means(show=show)
 
