@@ -128,7 +128,7 @@ class Sensor(luftdaten.Sensor):
 
         # Replace label from parent class with label from Google Sheet
         label = self.influencair_metadata["Label"]
-        if label:
+        if label is not pd.np.nan:
             self.label = label
 
     def get_luftdaten_metadata(self, **retrieval_kwargs):
