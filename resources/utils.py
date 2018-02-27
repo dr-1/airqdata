@@ -116,7 +116,7 @@ class BaseSensor:
         hourly_means.index.name = "Period"
         return hourly_means
 
-    def _plot_data(self, data, aggregation_level="Measurements"):
+    def _plot_data(self, data, aggregation_level="Measurements", show=True):
         """Plot time series.
 
         Args:
@@ -125,6 +125,7 @@ class BaseSensor:
             aggregation_level: aggregation level of the data, e.g.
                 "Hourly Means", or "Measurements" for individual data
                 points that are not aggregated
+            show: call plt.show; set to False to modify plots
 
         Returns:
             Matplotlib figure
@@ -151,31 +152,37 @@ class BaseSensor:
                    ylabel="{} in {}".format(phenomenon, unit),
                    ylim=(ymin, None))
             plt.xticks(horizontalalignment="center")
-        plt.show()
+        if show:
+            plt.show()
         return fig, ax
 
-    def plot_measurements(self):
+    def plot_measurements(self, show=True):
         """Plot measurements as time series.
+
+        Args:
+            call plt.show; set to False to modify plots
 
         Returns:
             Matplotlib figure
             Matplotlib axes
         """
-        return self._plot_data(self.measurements)
+        return self._plot_data(self.measurements, show=show)
 
-    def plot_hourly_means(self, *args, **kwargs):
+    def plot_hourly_means(self, *args, show=True, **kwargs):
         """Plot hourly means of measurements as time series.
 
         Args:
             args: positional arguments to pass to get_hourly_means
             kwargs: keyword arguments to pass to get_hourly_means
+            show: call plt.show; set to False to modify plots
 
         Returns:
             Matplotlib figure
             Matplotlib axes
         """
         hourly_means = self.get_hourly_means(*args, **kwargs)
-        return self._plot_data(hourly_means, aggregation_level="Hourly Means")
+        return self._plot_data(hourly_means, show=show,
+                               aggregation_level="Hourly Means")
 
 
 def read_json(file, *_args, **_kwargs):

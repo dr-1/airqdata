@@ -394,15 +394,18 @@ class Sensor(BaseSensor):
         """
         return self.measurements
 
-    def plot_measurements(self):
+    def plot_measurements(self, show=True):
         """Plot hourly means. In IRCELINE time series these are
         identical to measurements.
+
+        Args:
+            call plt.show; set to False to modify plots
 
         Returns:
             Matplotlib figure
             Matplotlib axes
         """
-        return self.plot_hourly_means()
+        return self.plot_hourly_means(show=show)
 
 
 def find_nearest_sensors(sensor, **retrieval_kwargs):

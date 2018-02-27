@@ -248,7 +248,8 @@ def search_proximity(lat=50.848, lon=4.351, radius=8):
 
 
 def evaluate_near_sensors(start_date, end_date, lat=50.848, lon=4.351,
-                          radius=8, sensor_type="SDS011", **retrieval_kwargs):
+                          radius=8, sensor_type="SDS011", show=True,
+                          **retrieval_kwargs):
     """Create Sensor instances for all sensors of sensor_type near a
     location and get their measurement data.
 
@@ -261,6 +262,7 @@ def evaluate_near_sensors(start_date, end_date, lat=50.848, lon=4.351,
         lon: see search_proximity
         radius: see search_proximity
         sensor_type: sensor type label, e.g. "SDS011" or "DHT22"
+        show: call plt.show; set to False to modify plots
         retrieval_kwargs: keyword arguments to pass to retrieve function
 
     Returns:
@@ -297,5 +299,6 @@ def evaluate_near_sensors(start_date, end_date, lat=50.848, lon=4.351,
          .plot(figsize=(16, 9), title=measure.upper()))
         plt.ylim(ymin=0)
         plt.ylabel("Concentration in µg/m³")
-        plt.show()
+        if show:
+            plt.show()
     return sensors, hourly_means
