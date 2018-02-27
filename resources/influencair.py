@@ -12,8 +12,9 @@ import madavi
 from utils import CACHE_DIR, retrieve
 
 # Resources
-SENSOR_SHEET_URL = ("https://docs.google.com/spreadsheets/d/1J8WTKryYjZHfBQrMS"
-                    "Yjwj6uLOBmWWLftaTqeicKVfYE/export?format=csv")
+SENSOR_SHEET_URL = ("https://docs.google.com/spreadsheets/d/"
+                    "1J8WTKryYjZHfBQrMSYjwj6uLOBmWWLftaTqeicKVfYEv")
+SENSOR_SHEET_DOWNLOAD_URL = SENSOR_SHEET_URL + "/export?format=csv"
 WEBSITE_URLS = {"https://influencair.be",
                 "https://www.meetup.com/Civic-Lab-Brussels"}
 MAP_URL = "http://influencair.be/map-brussels/"
@@ -46,7 +47,8 @@ class Metadata:
         Raises:
             KeyError if sheet structure does not match listed columns
         """
-        sensor_info = retrieve(SENSOR_INFO_CACHE_FILE, SENSOR_SHEET_URL,
+        sensor_info = retrieve(SENSOR_INFO_CACHE_FILE,
+                               SENSOR_SHEET_DOWNLOAD_URL,
                                "InfluencAir sensor information",
                                read_func=pd.read_csv,
                                read_func_kwargs={"header": 1,
