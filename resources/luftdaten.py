@@ -219,7 +219,7 @@ def search_proximity(lat=50.848, lon=4.351, radius=8):
     _json = requests.get(url).json()
     sensors = json_normalize(_json)
     sensors = (sensors[["sensor.id", "sensor.sensor_type.name",
-                       "location.latitude", "location.longitude"]]
+                        "location.latitude", "location.longitude"]]
                .rename(columns={"sensor.id": "sensor_id",
                                 "sensor.sensor_type.name": "sensor_type",
                                 "location.latitude": "latitude",
