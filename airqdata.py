@@ -4,6 +4,7 @@
 madavi.de and irceline.be.
 """
 
+import os
 import sys
 
 import pandas as pd
@@ -11,7 +12,9 @@ from matplotlib import pyplot as plt
 
 # Allow dir-less imports in resource modules. This makes it possible to
 # run those modules by themselves from their directory.
-("resources" in sys.path) or sys.path.append("resources")
+__module_dir__ = os.path.normpath(os.path.dirname(__file__))
+__resources_dir__ = os.path.join(__module_dir__, "resources")
+(__resources_dir__ in sys.path) or sys.path.append(__resources_dir__)
 
 from resources import influencair
 from resources import luftdaten
