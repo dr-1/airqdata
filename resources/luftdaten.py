@@ -218,6 +218,11 @@ def search_proximity(lat=50.848, lon=4.351, radius=8):
            .format(lat=lat, lon=lon, radius=radius))
     _json = requests.get(url).json()
     sensors = json_normalize(_json)
+    if len(sensors) == 0:
+        sensors = pd.DataFrame(columns=["sensor_type", "latitude", "longitude",
+                                        "distance"])
+        sensors.index.name = "sensor_id"
+        return sensors
     sensors = (sensors[["sensor.id", "sensor.sensor_type.name",
                         "location.latitude", "location.longitude"]]
                .rename(columns={"sensor.id": "sensor_id",
