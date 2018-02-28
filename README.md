@@ -9,10 +9,15 @@ The scripts include tools to
 [luftdaten.info](https://luftdaten.info/) project,
 [madavi.de](https://www.madavi.de/ok-lab-stuttgart/) and
 [irceline.be](http://www.irceline.be/en)
-* clean and combine the retrieved data
+* represent sensors of those different providers as objects with a unified
+  interface to make it easy to interact with them
+* retrieve sensor measurement data through API calls
+* cache those data
+* clean and combine the data
 * describe measurements statistically - individual sensors or groups to compare
 * plot measurement time series
-* find sensors that are geographically close
+* find sensors that are geographically close to a point of interest or to other
+  sensors
 
 For usage examples, see the
 [demo.ipynb](
