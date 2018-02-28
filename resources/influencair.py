@@ -13,7 +13,7 @@ from utils import CACHE_DIR, retrieve
 
 # Resources
 SENSOR_SHEET_URL = ("https://docs.google.com/spreadsheets/d/"
-                    "1J8WTKryYjZHfBQrMSYjwj6uLOBmWWLftaTqeicKVfYEv")
+                    "1J8WTKryYjZHfBQrMSYjwj6uLOBmWWLftaTqeicKVfYE")
 SENSOR_SHEET_DOWNLOAD_URL = SENSOR_SHEET_URL + "/export?format=csv"
 WEBSITE_URLS = {"https://influencair.be",
                 "https://www.meetup.com/Civic-Lab-Brussels"}
