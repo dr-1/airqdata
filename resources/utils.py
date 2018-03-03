@@ -2,6 +2,7 @@
 
 """Utility functions, constants and base classes."""
 
+import sys
 import os
 import json
 from io import BytesIO
@@ -192,7 +193,7 @@ def read_json(file, *_args, **_kwargs):
     """Read a semi-structured JSON file into a flattened dataframe.
 
     Args:
-        file: file object to read
+        file: file-like object
         _args: positional arguments receiver; not used
         _kwargs: keyword arguments receiver; not used
 
@@ -200,7 +201,11 @@ def read_json(file, *_args, **_kwargs):
         Dataframe with single column level; original JSON hierarchy is
             expressed as dot notation in column names
     """
-    _json = json.load(file)
+    if sys.version_info >= (3, 6):
+        _json = json.load(file)
+    else:  # In Python < 3.6, json.load does not accept bytes stream
+        file_content_str = file.read().decode()
+        _json = json.loads(file_content_str)
     flattened = json_normalize(_json)
     return flattened
 
