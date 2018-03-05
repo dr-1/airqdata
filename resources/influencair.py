@@ -5,11 +5,13 @@
 InfluencAir is a project created by Civic Lab Brussels.
 """
 
+import os
+
 import pandas as pd
 
 import luftdaten
 import madavi
-from utils import CACHE_DIR, retrieve
+from utils import cache_dir, retrieve
 
 # Resources
 SENSOR_SHEET_URL = ("https://docs.google.com/spreadsheets/d/"
@@ -18,9 +20,6 @@ SENSOR_SHEET_DOWNLOAD_URL = SENSOR_SHEET_URL + "/export?format=csv"
 WEBSITE_URLS = {"https://influencair.be",
                 "https://www.meetup.com/Civic-Lab-Brussels"}
 MAP_URL = "http://influencair.be/map-brussels/"
-
-# Caching
-SENSOR_INFO_CACHE_FILE = CACHE_DIR + "/civic_labs_sensors.csv"
 
 
 class Metadata:
@@ -47,7 +46,7 @@ class Metadata:
         Raises:
             KeyError if sheet structure does not match listed columns
         """
-        sensor_info = retrieve(SENSOR_INFO_CACHE_FILE,
+        sensor_info = retrieve(sensor_info_cache_file,
                                SENSOR_SHEET_DOWNLOAD_URL,
                                "InfluencAir sensor information",
                                read_func=pd.read_csv,
@@ -153,3 +152,7 @@ class Sensor(luftdaten.Sensor):
         else:
             sensor_type = self.sensor_type.lower()
         madavi.open_graphs(self.chip_id, sensor_model=sensor_type)
+
+
+# Caching
+sensor_info_cache_file = os.path.join(cache_dir, "civic_labs_sensors.csv")

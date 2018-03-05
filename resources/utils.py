@@ -15,8 +15,6 @@ from pandas.io.json import json_normalize
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 
-CACHE_DIR = "./cache"
-
 # Collection of equivalent phenomenon names for comparisons between
 # sensors with different affiliations
 EQUIVALENT_PHENOMENA = ({"pm2.5", "Particulate Matter < 2.5 µm"},
@@ -311,8 +309,9 @@ def label_coordinates(lat, lon):
 
 
 # Prepare caching
-if not os.path.isdir(CACHE_DIR):
-    os.makedirs(CACHE_DIR)
+cache_dir = os.path.join(os.path.dirname(__file__), os.pardir, "cache")
+if not os.path.isdir(cache_dir):
+    os.makedirs(cache_dir)
 
 # Variant of pandas DataFrame.describe method showing an interval that contains
 # 98% of the data, instead of the default interquartile range

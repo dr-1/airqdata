@@ -8,7 +8,7 @@ from itertools import chain
 
 import pandas as pd
 
-from utils import (CACHE_DIR, EQUIVALENT_PHENOMENA, BaseSensor, retrieve,
+from utils import (EQUIVALENT_PHENOMENA, BaseSensor, cache_dir, retrieve,
                    haversine)
 
 # API
@@ -24,11 +24,6 @@ API_ENDPOINTS = {"phenomena": API_BASE_URL + "phenomena",
 # Other resources
 WEBSITE_URL = "http://www.irceline.be"
 VIEWER_URL = "http://viewer.irceline.be"
-
-# Caching
-PHENOMENA_CACHE_FILE = CACHE_DIR + "/irceline_phenomena.json"
-STATIONS_CACHE_FILE = CACHE_DIR + "/irceline_stations.json"
-TIME_SERIES_CACHE_FILE = CACHE_DIR + "/irceline_time_series.json"
 
 
 class Metadata:
@@ -70,7 +65,7 @@ class Metadata:
             retrieval_kwargs: keyword arguments to pass to retrieve
                 function
         """
-        phenomena = retrieve(PHENOMENA_CACHE_FILE, API_ENDPOINTS["phenomena"],
+        phenomena = retrieve(phenomena_cache_file, API_ENDPOINTS["phenomena"],
                              "phenomenon metadata", **retrieval_kwargs)
         phenomena["id"] = phenomena["id"].astype("int")
         phenomena = phenomena.set_index("id").sort_index()
@@ -86,7 +81,7 @@ class Metadata:
         """
 
         # Retrieve and reshape data
-        stations = retrieve(STATIONS_CACHE_FILE, API_ENDPOINTS["stations"],
+        stations = retrieve(stations_cache_file, API_ENDPOINTS["stations"],
                             "station metadata", **retrieval_kwargs)
         stations = (stations
                     .drop(columns=["geometry.type", "type"])
@@ -121,7 +116,7 @@ class Metadata:
             return phenomenon_name
 
         # Retrieve and reshape data
-        time_series = retrieve(TIME_SERIES_CACHE_FILE,
+        time_series = retrieve(time_series_cache_file,
                                API_ENDPOINTS["timeseries"],
                                "time series metadata", **retrieval_kwargs)
         time_series["id"] = time_series["id"].astype("int")
@@ -361,7 +356,7 @@ class Sensor(BaseSensor):
         filename = ("irceline_{time_series_id}_{start_date}_{end_date}.json"
                     .format(time_series_id=self.sensor_id,
                             start_date=start_date, end_date=end_date))
-        filepath = os.path.join(CACHE_DIR, filename)
+        filepath = os.path.join(cache_dir, filename)
 
         # TODO: Check day by day if data are cached
         # Retrieve and parse data
@@ -452,3 +447,9 @@ def find_nearest_sensors(sensor, **retrieval_kwargs):
         nearest[phenomenon] = first_result
 
     return nearest
+
+
+# Caching
+phenomena_cache_file = os.path.join(cache_dir, "irceline_phenomena.json")
+stations_cache_file = os.path.join(cache_dir, "irceline_stations.json")
+time_series_cache_file = os.path.join(cache_dir, "irceline_time_series.json")

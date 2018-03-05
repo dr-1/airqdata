@@ -10,7 +10,7 @@ import pandas as pd
 from pandas.io.json import json_normalize
 from matplotlib import pyplot as plt
 
-from utils import (CACHE_DIR, BaseSensor, retrieve, haversine,
+from utils import (BaseSensor, cache_dir, retrieve, haversine,
                    label_coordinates)
 
 # API
@@ -71,7 +71,7 @@ class Sensor(BaseSensor):
 
         # Get and cache metadata and measurements of past five minutes
         filename = os.path.basename(self.metadata_url.rstrip("/")) + ".json"
-        filepath = os.path.join(CACHE_DIR, filename)
+        filepath = os.path.join(cache_dir, filename)
         parsed = retrieve(filepath, self.metadata_url,
                           "sensor {} metadata from luftdaten.info"
                           .format(self.sensor_id), **retrieval_kwargs)
@@ -134,7 +134,7 @@ class Sensor(BaseSensor):
             filename = ARCHIVE_FILENAME_PATTERN.format(date=date_iso,
                                                        sensor_type=stype,
                                                        sensor_id=sid)
-            filepath = os.path.join(CACHE_DIR, filename)
+            filepath = os.path.join(cache_dir, filename)
             url = ARCHIVE_URL_PATTERN.format(date=date_iso, filename=filename)
             data = retrieve(filepath, url,
                             "luftdaten.info data for sensor {} on {}"
