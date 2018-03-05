@@ -20,7 +20,8 @@ from resources import influencair
 from resources import luftdaten
 from resources import madavi
 from resources import irceline
-from resources.utils import EQUIVALENT_PHENOMENA, describe
+from resources.utils import (EQUIVALENT_PHENOMENA, describe, cache_dir,
+                             clear_cache)
 
 
 def compare_sensor_data(sensors, phenomena, start_date, end_date,

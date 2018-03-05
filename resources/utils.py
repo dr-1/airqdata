@@ -5,6 +5,7 @@
 import sys
 import os
 import json
+import shutil
 from io import BytesIO
 from math import radians, cos, sin, asin, sqrt
 from functools import partial
@@ -306,6 +307,21 @@ def label_coordinates(lat, lon):
     ew_hemisphere = "E" if lon > 0 else "W"
     label = "{}°{} {}°{}".format(lat, ns_hemisphere, lon, ew_hemisphere)
     return label
+
+
+def clear_cache():
+    """Remove the content of the cache directory if it exists."""
+    if not os.path.isdir(cache_dir):
+        return
+    for item in os.listdir(cache_dir):
+        item_path = os.path.join(cache_dir, item)
+        try:
+            if os.path.isfile(item_path):
+                os.remove(item_path)
+            elif os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+        except Exception as e:
+            print(e)
 
 
 # Prepare caching
