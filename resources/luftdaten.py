@@ -80,7 +80,7 @@ class Sensor(BaseSensor):
             metadata = (parsed
                         .drop(columns=["sensordatavalues", "timestamp"])
                         .iloc[0])
-        except ValueError:
+        except (ValueError, AttributeError):
             warnings.warn("Sensor metadata could not be retrieved")
         else:
             metadata.name = "metadata"
