@@ -251,7 +251,8 @@ class Metadata:
             lon: longitude of the center of search, in decimal degrees
             radius: maximum distance from center, in kilometers
 
-        Default values are the approximate center and radius of Brussels.
+        Default values are the approximate center and radius of
+        Brussels.
 
         Returns:
             Dataframe of matching stations, listing sensor types,
