@@ -3,21 +3,22 @@
 A toolkit to retrieve, analyze and visualize data from a variety of air quality
 sensors.
 
-The scripts include tools to
+The scripts include tools to  
 * wrap the APIs of various data providers, including Civic Lab Brussels'
 [InfluencAir](https://influencair.be/) project, the
 [luftdaten.info](https://luftdaten.info/) project,
 [madavi.de](https://www.madavi.de/ok-lab-stuttgart/) and
-[irceline.be](http://www.irceline.be/en)
+[irceline.be](http://www.irceline.be/en)  
 * represent sensors of those different providers as objects with a unified
-  interface to make it easy to interact with them
-* retrieve sensor measurement data through API calls
-* cache those data
-* clean and combine the data
-* describe measurements statistically - individual sensors or groups to compare
-* plot measurement time series
+  interface to make it easy to interact with them  
+* retrieve sensor measurement data through API calls  
+* cache those data  
+* clean and combine the data  
+* describe measurements statistically - individual sensors or groups to
+  compare  
+* plot measurement time series  
 * find sensors that are geographically close to a point of interest or to other
-  sensors
+  sensors  
 
 For usage examples, see the
 [demo.ipynb](
