@@ -8,8 +8,8 @@ from itertools import chain
 
 import pandas as pd
 
-from utils import (EQUIVALENT_PHENOMENA, BaseSensor, cache_dir, retrieve,
-                   haversine)
+from airqdata.utils import (EQUIVALENT_PHENOMENA, BaseSensor, cache_dir,
+                            retrieve, haversine)
 
 # API
 API_DOCUMENTATION_URL = "https://geo.irceline.be/sos/static/doc/api-doc/"
