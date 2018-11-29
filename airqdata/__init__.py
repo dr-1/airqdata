@@ -16,12 +16,10 @@ __module_dir__ = os.path.normpath(os.path.dirname(__file__))
 __resources_dir__ = os.path.join(__module_dir__, "resources")
 (__resources_dir__ in sys.path) or sys.path.append(__resources_dir__)
 
-from resources import influencair
-from resources import luftdaten
-from resources import madavi
-from resources import irceline
-from resources.utils import (EQUIVALENT_PHENOMENA, describe, cache_dir,
-                             clear_cache)
+from airqdata.resources import (influencair, irceline, luftdaten,
+                                madavi)
+from airqdata.resources.utils import (EQUIVALENT_PHENOMENA, describe,
+                                      cache_dir, clear_cache)
 
 
 def compare_sensor_data(sensors, phenomena, start_date, end_date,
