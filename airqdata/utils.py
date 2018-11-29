@@ -325,7 +325,7 @@ def clear_cache():
 
 
 # Prepare caching
-cache_dir = os.path.join(os.path.dirname(__file__), os.pardir, "cache")
+cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "airqdata")
 if not os.path.isdir(cache_dir):
     os.makedirs(cache_dir)
 
