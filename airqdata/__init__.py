@@ -14,6 +14,8 @@ from airqdata import influencair, irceline, luftdaten, madavi
 from airqdata.utils import (EQUIVALENT_PHENOMENA, describe, cache_dir,
                             clear_cache)
 
+__version__ = "0.1"
+
 
 def compare_sensor_data(sensors, phenomena, start_date, end_date,
                         hourly_means=True, show_plots=True,
