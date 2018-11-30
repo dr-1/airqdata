@@ -5,6 +5,8 @@
 import os
 from setuptools import find_packages, setup
 
+from airqdata import __version__ as version
+
 # Get short and long descriptions from readme file
 here = os.path.abspath(os.path.dirname(__file__))
 readme_file = os.path.join(here, "README.md")
@@ -16,7 +18,7 @@ with open(readme_file, "r") as file:
     long_description = line + file.read()
 
 setup(name="airqdata",
-      version="0.1",
+      version=version,
       description=short_description,
       long_description=long_description,
       long_description_content_type="text/markdown",
