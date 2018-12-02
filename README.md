@@ -25,11 +25,14 @@ For usage examples, see the
 https://nbviewer.jupyter.org/gist/dr-1/450c275b1ad2cbf88e9c4325c5d032bc)
 notebook.
 
-## Requirements
-A Python 3.5+ environment is assumed. Several Python packages are required, see
-requirements.txt. To install them, use Python's pip command or execute
-install_requirements.sh, with elevated privileges
-(`sudo ./install_requirements.sh`) if needed on your system.
+## Installation
+To install airqdata from PyPI, run  
+`pip install airqdata`
+
+A Python 3.5+ environment and several Python packages are required. When
+installing airqdata with pip, those dependencies will be installed
+automatically. Otherwise see requirements.txt and
+install_requirements.sh in this repository.
 
 ## Legal
 The scripts are licensed under the
