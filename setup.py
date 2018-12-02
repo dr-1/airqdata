@@ -12,10 +12,10 @@ here = os.path.abspath(os.path.dirname(__file__))
 readme_file = os.path.join(here, "README.md")
 line = ""
 with open(readme_file, "r") as file:
-    while line.startswith("#") or not line.strip():
-        line = file.readline()
-    short_description = line.strip()
-    long_description = line + file.read()
+    long_description = file.read()
+title, short_description, rest = long_description.split(2 * os.linesep,
+                                                        maxsplit=2)
+short_description = " ".join(short_description.split())
 
 setup(name="airqdata",
       version=version,
