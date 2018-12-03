@@ -6,8 +6,6 @@
 !LICENSE
 !README.md
 !airqdata/
-!airqdata/resources
-!airqdata/resources/*.py
 !demo.ipynb
 !install_requirements.sh
 !requirements.txt
