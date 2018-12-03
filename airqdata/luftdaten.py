@@ -10,8 +10,8 @@ import pandas as pd
 from pandas.io.json import json_normalize
 from matplotlib import pyplot as plt
 
-from utils import (BaseSensor, cache_dir, retrieve, haversine,
-                   label_coordinates)
+from airqdata.utils import (BaseSensor, cache_dir, retrieve, haversine,
+                            label_coordinates)
 
 # API
 API_DOCUMENTATION_URL = "https://github.com/opendata-stuttgart/meta/wiki/APIs"

@@ -4,24 +4,14 @@
 madavi.de and irceline.be.
 """
 
-import os
-import sys
-
 import pandas as pd
 from matplotlib import pyplot as plt
 
-# Allow dir-less imports in resource modules. This makes it possible to
-# run those modules by themselves from their directory.
-__module_dir__ = os.path.normpath(os.path.dirname(__file__))
-__resources_dir__ = os.path.join(__module_dir__, "resources")
-(__resources_dir__ in sys.path) or sys.path.append(__resources_dir__)
+from airqdata import influencair, irceline, luftdaten, madavi
+from airqdata.utils import (EQUIVALENT_PHENOMENA, describe, cache_dir,
+                            clear_cache)
 
-from resources import influencair
-from resources import luftdaten
-from resources import madavi
-from resources import irceline
-from resources.utils import (EQUIVALENT_PHENOMENA, describe, cache_dir,
-                             clear_cache)
+__version__ = "0.1"
 
 
 def compare_sensor_data(sensors, phenomena, start_date, end_date,
@@ -33,7 +23,7 @@ def compare_sensor_data(sensors, phenomena, start_date, end_date,
 
     Args:
         sensors: sequence of sensor objects, instances of
-            resources.utils.BaseSensor
+            utils.BaseSensor
         phenomena: sequence of column names of the data to use; order
             corresponding to sensors parameter
         start_date: start date of measurements to compare, in ISO 8601
@@ -98,7 +88,7 @@ def compare_nearest_irceline_sensors(sensor, start_date, end_date,
     closest IRCELINE sensor(s) that measure equivalent phenomena.
 
     Args:
-        sensor: sensor object, instance of resources.utils.BaseSensor
+        sensor: sensor object, instance of utils.BaseSensor
         start_date: start date of measurements to compare, in ISO 8601
             (YYYY-MM-DD) format
         end_date: end date of measurements to compare, in ISO 8601

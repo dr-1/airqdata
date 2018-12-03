@@ -3,12 +3,12 @@
 
 # Except these
 !.gitignore
-!*.py
-!demo.ipynb
-!install_requirements.sh
 !LICENSE
 !README.md
+!airqdata/
+!airqdata/resources
+!airqdata/resources/*.py
+!demo.ipynb
+!install_requirements.sh
 !requirements.txt
-!/resources
-!/resources/*.py
-
+!setup.py

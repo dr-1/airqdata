@@ -9,9 +9,8 @@ import os
 
 import pandas as pd
 
-import luftdaten
-import madavi
-from utils import cache_dir, retrieve
+from airqdata import luftdaten, madavi
+from airqdata.utils import cache_dir, retrieve
 
 # Resources
 SENSOR_SHEET_URL = ("https://docs.google.com/spreadsheets/d/"
