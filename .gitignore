@@ -10,3 +10,5 @@
 !install_requirements.sh
 !requirements.txt
 !setup.py
+!tests/
+!tests/test_demo_notebook.py
