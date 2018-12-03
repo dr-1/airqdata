@@ -4,6 +4,7 @@
 
 import os
 import warnings
+import time
 from itertools import chain
 
 import pandas as pd
@@ -376,6 +377,44 @@ class Sensor(BaseSensor):
         data = data.drop(columns=["timestamp"])
 
         self.measurements = data
+
+    def get_latest_measurement(self, **retrieval_kwargs):
+        """Retrieve time series data.
+
+        Args:
+            retrieval_kwargs: keyword arguments to pass to retrieve
+                function
+        """
+
+        sensor_id = self.sensor_id
+
+        # Make start and end timezone aware and truncate time values
+        today = time.strftime("%Y-%m-%d")
+        tomorrow_date = pd.to_datetime(today, format="%Y-%m-%d",
+                                       utc=True).normalize() + \
+                        pd.Timedelta(days=1)
+        tomorrow = tomorrow_date.strftime("%Y-%m-%d")
+
+        # download the data
+        url = (API_ENDPOINTS["data pattern"]
+               .format(time_series_id=sensor_id,
+                       start=today,
+                       end=tomorrow))
+
+        filename = ("irceline_{time_series_id}_{start_date}_{end_date}.json"
+                    .format(time_series_id=sensor_id,
+                            start_date=today, end_date=tomorrow))
+        filepath = os.path.join(cache_dir, filename)
+
+        # Retrieve and parse data
+        data = retrieve(filepath, url, "IRCELINE timeseries data",
+                        **retrieval_kwargs)
+        data = pd.DataFrame.from_dict(data.loc[0, "values"])
+        data = data[data['value'] != "NaN"]
+        data = data.tail(1)
+        last_measurement = data['value'].iloc[0]
+
+        self.measurements = last_measurement
 
     def clean_measurements(self):
         """Clean measurement data."""
