@@ -7,6 +7,7 @@ import warnings
 from itertools import chain
 
 import pandas as pd
+import requests
 
 from airqdata.utils import (EQUIVALENT_PHENOMENA, BaseSensor, cache_dir,
                             retrieve, haversine)
@@ -17,6 +18,8 @@ API_BASE_URL = "https://geo.irceline.be/sos/api/v1/"
 API_ENDPOINTS = {"phenomena": API_BASE_URL + "phenomena",
                  "stations": API_BASE_URL + "stations",
                  "timeseries": API_BASE_URL + "timeseries",
+                 "timeseries pattern":
+                 API_BASE_URL + "timeseries/{time_series_id}",
                  "data pattern":
                  API_BASE_URL + ("timeseries/{time_series_id}/getData?"
                                  "timespan={start}/{end}")}
@@ -380,6 +383,15 @@ class Sensor(BaseSensor):
     def clean_measurements(self):
         """Clean measurement data."""
         pass
+
+    def get_last_measurement(self):
+        """Get latest measurement timestamp and value."""
+        timeseries_data = (requests
+                           .get(API_ENDPOINTS["timeseries pattern"]
+                                .format(time_series_id=self.sensor_id))
+                           .json())
+        last_measurement = timeseries_data["lastValue"]
+        return last_measurement
 
     def get_hourly_means(self):
         """Get hourly means of measurements. In IRCELINE time series
