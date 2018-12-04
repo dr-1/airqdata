@@ -414,7 +414,7 @@ class Sensor(BaseSensor):
         data = data.tail(1)
         last_measurement = data['value'].iloc[0]
 
-        self.measurements = last_measurement
+        return last_measurement
 
     def clean_measurements(self):
         """Clean measurement data."""
