@@ -72,9 +72,11 @@ class Sensor(utils.BaseSensor):
         # Get and cache metadata and measurements of past five minutes
         filename = os.path.basename(self.metadata_url.rstrip("/")) + ".json"
         filepath = os.path.join(cache_dir, filename)
-        parsed = retrieve(filepath, self.metadata_url,
-                          "sensor {} metadata from luftdaten.info"
-                          .format(self.sensor_id), **retrieval_kwargs)
+        parsed = retrieve(cache_file=filepath,
+                          url=self.metadata_url,
+                          label=("sensor {} metadata from luftdaten.info"
+                                 .format(self.sensor_id)),
+                          **retrieval_kwargs)
 
         try:
             metadata = (parsed
@@ -136,11 +138,13 @@ class Sensor(utils.BaseSensor):
                                                        sensor_id=sid)
             filepath = os.path.join(cache_dir, filename)
             url = ARCHIVE_URL_PATTERN.format(date=date_iso, filename=filename)
-            data = retrieve(filepath, url,
-                            "luftdaten.info data for sensor {} on {}"
-                            .format(sid, date_iso),
+            data = retrieve(cache_file=filepath,
+                            url=url,
+                            label=("luftdaten.info data for sensor {} on {}"
+                                   .format(sid, date_iso)),
                             read_func=pd.read_csv,
-                            read_func_kwargs={"sep": ";"}, **retrieval_kwargs)
+                            read_func_kwargs={"sep": ";"},
+                            **retrieval_kwargs)
             if data is None:
                 continue
 

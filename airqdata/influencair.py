@@ -45,9 +45,9 @@ class Metadata:
         Raises:
             KeyError if sheet structure does not match listed columns
         """
-        sensor_info = retrieve(sensor_info_cache_file,
-                               SENSOR_SHEET_DOWNLOAD_URL,
-                               "InfluencAir sensor information",
+        sensor_info = retrieve(cache_file=sensor_info_cache_file,
+                               url=SENSOR_SHEET_DOWNLOAD_URL,
+                               label="InfluencAir sensor information",
                                read_func=pd.read_csv,
                                read_func_kwargs={"header": 1,
                                                  "dtype": "object"},

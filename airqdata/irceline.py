@@ -68,8 +68,10 @@ class Metadata:
             retrieval_kwargs: keyword arguments to pass to retrieve
                 function
         """
-        phenomena = retrieve(phenomena_cache_file, API_ENDPOINTS["phenomena"],
-                             "phenomenon metadata", **retrieval_kwargs)
+        phenomena = retrieve(cache_file=phenomena_cache_file,
+                             url=API_ENDPOINTS["phenomena"],
+                             label="phenomenon metadata",
+                             **retrieval_kwargs)
         phenomena["id"] = phenomena["id"].astype("int")
         phenomena = phenomena.set_index("id").sort_index()
         cls.phenomena = phenomena
@@ -84,8 +86,10 @@ class Metadata:
         """
 
         # Retrieve and reshape data
-        stations = retrieve(stations_cache_file, API_ENDPOINTS["stations"],
-                            "station metadata", **retrieval_kwargs)
+        stations = retrieve(cache_file=stations_cache_file,
+                            url=API_ENDPOINTS["stations"],
+                            label="station metadata",
+                            **retrieval_kwargs)
         stations = (stations
                     .drop(columns=["geometry.type", "type"])
                     .rename(columns={"properties.id": "id",
@@ -119,9 +123,10 @@ class Metadata:
             return phenomenon_name
 
         # Retrieve and reshape data
-        time_series = retrieve(time_series_cache_file,
-                               API_ENDPOINTS["timeseries"],
-                               "time series metadata", **retrieval_kwargs)
+        time_series = retrieve(cache_file=time_series_cache_file,
+                               url=API_ENDPOINTS["timeseries"],
+                               label="time series metadata",
+                               **retrieval_kwargs)
         time_series["id"] = time_series["id"].astype("int")
         time_series = (time_series
                        .set_index("id")
@@ -366,7 +371,9 @@ class Sensor(utils.BaseSensor):
 
         # TODO: Check day by day if data are cached
         # Retrieve and parse data
-        data = retrieve(filepath, url, "IRCELINE timeseries data",
+        data = retrieve(cache_file=filepath,
+                        url=url,
+                        label="IRCELINE timeseries data",
                         **retrieval_kwargs)
         data = pd.DataFrame.from_dict(data.loc[0, "values"])
         if len(data) == 0:
