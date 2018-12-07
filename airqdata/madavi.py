@@ -2,8 +2,6 @@
 
 """Access resources on madavi.de."""
 
-# TODO: Use luftdaten sensor ID instead of madavi chip ID if mapping exists
-
 import webbrowser
 
 GRAPHS_URL_PATTERN = ("https://www.madavi.de/sensor/graph.php?"
@@ -16,7 +14,8 @@ def open_graphs(chip_id, sensor_model="sds011"):
 
     Args:
         chip_id: ID of the NodeMCU as listed on madavi.de. Note this is
-            not the luftdaten.info ID.
+            not the luftdaten.info sensor ID. No complete mapping
+            between chip IDs and sensor IDs exists at the moment.
         sensor_model: sensor model as it appears in URLs on madavi.de,
             e.g. "sds011" (particulate matter) or "dht" (temperature and
             relative humidity). Case-insensitive in this function.
