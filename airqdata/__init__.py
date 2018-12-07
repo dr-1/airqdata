@@ -4,8 +4,8 @@
 madavi.de and irceline.be.
 """
 
-import pandas as pd
 from matplotlib import pyplot as plt
+import pandas as pd
 
 from airqdata import influencair, irceline, luftdaten, madavi, utils
 

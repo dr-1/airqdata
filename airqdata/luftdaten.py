@@ -5,10 +5,10 @@
 import os
 import warnings
 
-import requests
 import pandas as pd
-from pandas.io.json import json_normalize
+import requests
 from matplotlib import pyplot as plt
+from pandas.io.json import json_normalize
 
 from airqdata import utils
 from airqdata.utils import cache_dir, retrieve

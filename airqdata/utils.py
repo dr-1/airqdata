@@ -2,19 +2,19 @@
 
 """Utility functions, constants and base classes."""
 
-import sys
-import os
 import json
+import os
 import shutil
-from io import BytesIO
-from math import radians, cos, sin, asin, sqrt
+import sys
 from functools import partial
+from io import BytesIO
+from math import asin, cos, radians, sin, sqrt
 
-import requests
-import pandas as pd
-from pandas.io.json import json_normalize
 import matplotlib as mpl
+import pandas as pd
+import requests
 from matplotlib import pyplot as plt
+from pandas.io.json import json_normalize
 
 # Collection of equivalent phenomenon names for comparisons between
 # sensors with different affiliations
