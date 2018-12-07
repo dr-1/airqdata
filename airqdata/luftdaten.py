@@ -29,6 +29,7 @@ ARCHIVE_FILENAME_PATTERN = "{date}_{sensor_type}_sensor_{sensor_id}.csv"
 # Other resources
 WEBSITE_URL = "https://luftdaten.info"
 MAP_URL = "https://maps.luftdaten.info"
+DATA_LICENSING_URL = "https://archive.luftdaten.info/00disclamer.md"
 
 UNITS = {"pm2.5": "µg/m³",
          "pm10": "µg/m³",

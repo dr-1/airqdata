@@ -27,6 +27,7 @@ API_ENDPOINTS = {"phenomena": API_BASE_URL + "phenomena",
 # Other resources
 WEBSITE_URL = "http://www.irceline.be"
 VIEWER_URL = "http://viewer.irceline.be"
+DATA_LICENSING_URL = "http://www.irceline.be/en/documentation/open-data"
 
 
 class Metadata:
