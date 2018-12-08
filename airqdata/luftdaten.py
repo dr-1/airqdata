@@ -10,8 +10,8 @@ import pandas as pd
 from pandas.io.json import json_normalize
 from matplotlib import pyplot as plt
 
-from airqdata.utils import (BaseSensor, cache_dir, retrieve, haversine,
-                            label_coordinates)
+from airqdata import utils
+from airqdata.utils import cache_dir, retrieve
 
 # API
 API_DOCUMENTATION_URL = "https://github.com/opendata-stuttgart/meta/wiki/APIs"
@@ -36,7 +36,7 @@ UNITS = {"pm2.5": "µg/m³",
          "temperature": "°C"}
 
 
-class Sensor(BaseSensor):
+class Sensor(utils.BaseSensor):
     """A sensor registered on luftdaten.info.
 
     Properties in addition to those of BaseSensor:
@@ -90,7 +90,7 @@ class Sensor(BaseSensor):
             self.sensor_type = metadata["sensor.sensor_type.name"]
             self.lat = float(metadata["location.latitude"])
             self.lon = float(metadata["location.longitude"])
-            self.label = "at " + label_coordinates(self.lat, self.lon)
+            self.label = "at " + utils.label_coordinates(self.lat, self.lon)
 
             # Extract most current measurements
             current = parsed["sensordatavalues"].iloc[-1]
@@ -238,9 +238,9 @@ def search_proximity(lat=50.848, lon=4.351, radius=8):
 
     # Calculate distances from search center and sort by those distances
     sensors["distance"] = sensors.apply(lambda x:
-                                        haversine(lat, lon,
-                                                  float(x["latitude"]),
-                                                  float(x["longitude"])),
+                                        utils.haversine(lat, lon,
+                                                        float(x["latitude"]),
+                                                        float(x["longitude"])),
                                         axis=1)
     sensors.sort_values("distance", inplace=True)
 

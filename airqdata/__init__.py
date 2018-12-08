@@ -7,9 +7,7 @@ madavi.de and irceline.be.
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from airqdata import influencair, irceline, luftdaten, madavi
-from airqdata.utils import (EQUIVALENT_PHENOMENA, describe, cache_dir,
-                            clear_cache)
+from airqdata import influencair, irceline, luftdaten, madavi, utils
 
 __version__ = "0.2"
 

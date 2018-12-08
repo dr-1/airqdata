@@ -9,8 +9,8 @@ from itertools import chain
 import pandas as pd
 import requests
 
-from airqdata.utils import (EQUIVALENT_PHENOMENA, BaseSensor, cache_dir,
-                            retrieve, haversine)
+from airqdata import utils
+from airqdata.utils import cache_dir, retrieve
 
 # API
 API_DOCUMENTATION_URL = "https://geo.irceline.be/sos/static/doc/api-doc/"
@@ -190,11 +190,12 @@ class Metadata:
         if len(results) == 0:
             results["distance"] = None
             return results
-        results["distance"] = results.apply(lambda row:
-                                            haversine(lat_nearest, lon_nearest,
+        results["distance"] = (results
+                               .apply(lambda row:
+                                      utils.haversine(lat_nearest, lon_nearest,
                                                       row["station_lat"],
                                                       row["station_lon"]),
-                                            axis=1)
+                                      axis=1))
         results = results.sort_values("distance")
         return results
 
@@ -274,15 +275,16 @@ class Metadata:
         near_stations = cls.stations.copy()
         near_stations["distance"] = (near_stations
                                      .apply(lambda x:
-                                            haversine(lat, lon,
-                                                      x["lat"], x["lon"]),
+                                            utils.haversine(lat, lon,
+                                                            x["lat"],
+                                                            x["lon"]),
                                             axis=1))
         near_stations = (near_stations[near_stations["distance"] <= radius]
                          .sort_values("distance"))
         return near_stations
 
 
-class Sensor(BaseSensor):
+class Sensor(utils.BaseSensor):
     """A sensor located at an IRCELINE measuring station.
 
     Sensors are represented as time series by IRCELINE.
@@ -435,10 +437,11 @@ def find_nearest_sensors(sensor, **retrieval_kwargs):
     for phenomenon in sensor.phenomena:
 
         # Names of comparable phenomena potentially measured by IRCELINE
-        equivalent_phenomena = chain.from_iterable(group
-                                                   for group
-                                                   in EQUIVALENT_PHENOMENA
-                                                   if phenomenon in group)
+        equivalent_phenomena = (chain
+                                .from_iterable(group
+                                               for group
+                                               in utils.EQUIVALENT_PHENOMENA
+                                               if phenomenon in group))
 
         # Collect and combine matching IRCELINE time series
         matching_pieces = []
