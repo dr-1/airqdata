@@ -77,6 +77,7 @@ class Sensor(utils.BaseSensor):
                           url=self.metadata_url,
                           label=("sensor {} metadata from luftdaten.info"
                                  .format(self.sensor_id)),
+                          call_rate_limiter=call_rate_limiter,
                           **retrieval_kwargs)
 
         try:
@@ -144,6 +145,7 @@ class Sensor(utils.BaseSensor):
                             label=("luftdaten.info data for sensor {} on {}"
                                    .format(sid, date_iso)),
                             read_func=pd.read_csv,
+                            call_rate_limiter=call_rate_limiter,
                             read_func_kwargs={"sep": ";"},
                             **retrieval_kwargs)
             if data is None:
@@ -221,6 +223,7 @@ def search_proximity(lat=50.848, lon=4.351, radius=8):
     """
     url = (API_ENDPOINTS["proximity search pattern"]
            .format(lat=lat, lon=lon, radius=radius))
+    call_rate_limiter()
     _json = requests.get(url).json()
     sensors = json_normalize(_json)
     if len(sensors) == 0:
@@ -307,3 +310,6 @@ def evaluate_near_sensors(start_date, end_date, lat=50.848, lon=4.351,
         if show:
             plt.show()
     return sensors, hourly_means
+
+
+call_rate_limiter = utils.CallRateLimiter()

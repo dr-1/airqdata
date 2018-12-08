@@ -9,7 +9,7 @@ import os
 
 import pandas as pd
 
-from airqdata import luftdaten, madavi
+from airqdata import luftdaten, madavi, utils
 from airqdata.utils import cache_dir, retrieve
 
 # Resources
@@ -51,6 +51,7 @@ class Metadata:
                                read_func=pd.read_csv,
                                read_func_kwargs={"header": 1,
                                                  "dtype": "object"},
+                               call_rate_limiter=google_call_rate_limiter,
                                **retrieval_kwargs)
         try:
             sensor_info = (sensor_info[["Chip ID", "PM Sensor ID",
@@ -155,3 +156,5 @@ class Sensor(luftdaten.Sensor):
 
 # Caching
 sensor_info_cache_file = os.path.join(cache_dir, "civic_labs_sensors.csv")
+
+google_call_rate_limiter = utils.CallRateLimiter()

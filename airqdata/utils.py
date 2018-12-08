@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import sys
+import time
 from functools import partial
 from io import BytesIO
 from math import asin, cos, radians, sin, sqrt
@@ -188,6 +189,34 @@ class BaseSensor:
                                aggregation_level="Hourly Means")
 
 
+class CallRateLimiter:
+    """Rate limiter for API calls.
+
+    Properties:
+        calls_per_second: maximum allowed rate of requests
+        seconds_per_call: reciprocal of calls_per_second; time to wait
+            between requests
+        seconds_between_checks: time between checks to determine whether
+            another request can be made
+        last_call_timestamp: Unix timestamp of the most recent request
+    """
+
+    def __init__(self, calls_per_second=3):
+        """Create a CallRateLimiter object."""
+        self.calls_per_second = calls_per_second
+        self.seconds_per_call = 1 / calls_per_second
+        self.seconds_between_checks = self.seconds_per_call / 5
+        self.last_call_timestamp = None
+
+    def __call__(self):
+        """Trigger the rate limiter."""
+        if self.last_call_timestamp is not None:
+            while (time.time() - self.last_call_timestamp
+                   < self.seconds_per_call):
+                time.sleep(self.seconds_between_checks)
+        self.last_call_timestamp = time.time()
+
+
 def read_json(file, *_args, **_kwargs):
     """Read a semi-structured JSON file into a flattened dataframe.
 
@@ -210,7 +239,8 @@ def read_json(file, *_args, **_kwargs):
 
 
 def retrieve(cache_file, url, label, read_func=read_json, read_func_args=None,
-             read_func_kwargs=None, refresh_cache=False, quiet=False):
+             read_func_kwargs=None, refresh_cache=False,
+             call_rate_limiter=None, quiet=False):
     """Get a resource file from cache or from a URL and parse it.
 
     Cache downloaded data.
@@ -229,6 +259,7 @@ def retrieve(cache_file, url, label, read_func=read_json, read_func_args=None,
         read_func_kwargs: dict of keyword arguments to pass to read_func
         refresh_cache: boolean; when set to True, replace cached file
             with a new download
+        call_rate_limiter: CallRateLimiter object
         quiet: do not show feedback
 
     Returns:
@@ -239,6 +270,10 @@ def retrieve(cache_file, url, label, read_func=read_json, read_func_args=None,
     if read_func_kwargs is None:
         read_func_kwargs = {}
     if refresh_cache or not os.path.isfile(cache_file):
+
+        # Respect API call rate limit
+        if call_rate_limiter is not None:
+            call_rate_limiter()
 
         # Download data
         quiet or print("Downloading", label)

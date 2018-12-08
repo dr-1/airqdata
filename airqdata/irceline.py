@@ -72,6 +72,7 @@ class Metadata:
         phenomena = retrieve(cache_file=phenomena_cache_file,
                              url=API_ENDPOINTS["phenomena"],
                              label="phenomenon metadata",
+                             call_rate_limiter=call_rate_limiter,
                              **retrieval_kwargs)
         phenomena["id"] = phenomena["id"].astype("int")
         phenomena = phenomena.set_index("id").sort_index()
@@ -90,6 +91,7 @@ class Metadata:
         stations = retrieve(cache_file=stations_cache_file,
                             url=API_ENDPOINTS["stations"],
                             label="station metadata",
+                            call_rate_limiter=call_rate_limiter,
                             **retrieval_kwargs)
         stations = (stations
                     .drop(columns=["geometry.type", "type"])
@@ -127,6 +129,7 @@ class Metadata:
         time_series = retrieve(cache_file=time_series_cache_file,
                                url=API_ENDPOINTS["timeseries"],
                                label="time series metadata",
+                               call_rate_limiter=call_rate_limiter,
                                **retrieval_kwargs)
         time_series["id"] = time_series["id"].astype("int")
         time_series = (time_series
@@ -375,6 +378,7 @@ class Sensor(utils.BaseSensor):
         data = retrieve(cache_file=filepath,
                         url=url,
                         label="IRCELINE timeseries data",
+                        call_rate_limiter=call_rate_limiter,
                         **retrieval_kwargs)
         data = pd.DataFrame.from_dict(data.loc[0, "values"])
         if len(data) == 0:
@@ -396,6 +400,7 @@ class Sensor(utils.BaseSensor):
 
     def get_last_measurement(self):
         """Get latest measurement timestamp and value."""
+        call_rate_limiter()
         timeseries_data = (requests
                            .get(API_ENDPOINTS["timeseries pattern"]
                                 .format(time_series_id=self.sensor_id))
@@ -477,3 +482,5 @@ def find_nearest_sensors(sensor, **retrieval_kwargs):
 phenomena_cache_file = os.path.join(cache_dir, "irceline_phenomena.json")
 stations_cache_file = os.path.join(cache_dir, "irceline_stations.json")
 time_series_cache_file = os.path.join(cache_dir, "irceline_time_series.json")
+
+call_rate_limiter = utils.CallRateLimiter()

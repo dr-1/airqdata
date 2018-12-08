@@ -4,6 +4,8 @@
 
 import webbrowser
 
+from airqdata import utils
+
 GRAPHS_URL_PATTERN = ("https://www.madavi.de/sensor/graph.php?"
                       "sensor=esp8266-{chip_id}-{sensor_model}")
 
@@ -22,4 +24,8 @@ def open_graphs(chip_id, sensor_model="sds011"):
     """
     url = GRAPHS_URL_PATTERN.format(chip_id=chip_id,
                                     sensor_model=sensor_model.lower())
+    call_rate_limiter()
     webbrowser.open(url)
+
+
+call_rate_limiter = utils.CallRateLimiter()
