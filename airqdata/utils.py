@@ -155,7 +155,8 @@ class BaseSensor:
             ax.set(xlabel="Timestamp",
                    ylabel="{} in {}".format(phenomenon, unit),
                    ylim=(ymin, None))
-            plt.xticks(horizontalalignment="center")
+            for tick in ax.get_xticklabels():
+                tick.set_horizontalalignment("center")
         if show:
             plt.show()
         return figs, axes

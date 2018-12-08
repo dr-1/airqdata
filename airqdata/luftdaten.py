@@ -303,10 +303,9 @@ def evaluate_near_sensors(start_date, end_date, lat=50.848, lon=4.351,
     hourly_means = hourly_means.swaplevel(0, 1, axis=1)
     hourly_means.sort_index(axis=1, level=0, inplace=True)
     for measure in ("pm10", "pm2.5"):
-        (hourly_means.loc[:, measure]
-         .plot(figsize=(16, 9), title=measure.upper()))
-        plt.ylim(ymin=0)
-        plt.ylabel("Concentration in µg/m³")
+        ax = (hourly_means.loc[:, measure]
+              .plot(figsize=(16, 9), title=measure.upper(), ylim=(0, None)))
+        ax.set(ylabel="Concentration in µg/m³")
         if show:
             plt.show()
     return sensors, hourly_means
