@@ -16,8 +16,10 @@ from airqdata.utils import cache_dir, retrieve
 SENSOR_SHEET_URL = ("https://docs.google.com/spreadsheets/d/"
                     "1J8WTKryYjZHfBQrMSYjwj6uLOBmWWLftaTqeicKVfYE")
 SENSOR_SHEET_DOWNLOAD_URL = SENSOR_SHEET_URL + "/export?format=csv"
-WEBSITE_URLS = {"https://influencair.be",
-                "https://www.meetup.com/Civic-Lab-Brussels"}
+WEBSITE_URLS = {
+    "https://influencair.be",
+    "https://www.meetup.com/Civic-Lab-Brussels",
+    }
 MAP_URL = "http://influencair.be/map-brussels/"
 
 

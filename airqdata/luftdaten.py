@@ -16,10 +16,11 @@ from airqdata.utils import cache_dir, retrieve
 # API
 API_DOCUMENTATION_URL = "https://github.com/opendata-stuttgart/meta/wiki/APIs"
 API_BASE_URL = "https://api.luftdaten.info/v1/"
-API_ENDPOINTS = {"sensor metadata pattern":
-                 API_BASE_URL + "sensor/{sensor_id}/",
-                 "proximity search pattern":
-                 API_BASE_URL + "filter/area={lat},{lon},{radius}"}
+API_ENDPOINTS = {
+    "sensor metadata pattern": API_BASE_URL + "sensor/{sensor_id}/",
+    "proximity search pattern":
+        API_BASE_URL + "filter/area={lat},{lon},{radius}",
+    }
 
 # Data archive
 ARCHIVE_BASE_URL = "https://archive.luftdaten.info/"
@@ -31,10 +32,12 @@ WEBSITE_URL = "https://luftdaten.info"
 MAP_URL = "https://maps.luftdaten.info"
 DATA_LICENSING_URL = "https://archive.luftdaten.info/00disclamer.md"
 
-UNITS = {"pm2.5": "µg/m³",
-         "pm10": "µg/m³",
-         "humidity": "%rh",
-         "temperature": "°C"}
+UNITS = {
+    "pm2.5": "µg/m³",
+    "pm10": "µg/m³",
+    "humidity": "%rh",
+    "temperature": "°C",
+    }
 
 
 class Sensor(utils.BaseSensor):

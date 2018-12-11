@@ -15,14 +15,14 @@ from airqdata.utils import cache_dir, retrieve
 # API
 API_DOCUMENTATION_URL = "https://geo.irceline.be/sos/static/doc/api-doc/"
 API_BASE_URL = "https://geo.irceline.be/sos/api/v1/"
-API_ENDPOINTS = {"phenomena": API_BASE_URL + "phenomena",
-                 "stations": API_BASE_URL + "stations",
-                 "timeseries": API_BASE_URL + "timeseries",
-                 "timeseries pattern":
-                 API_BASE_URL + "timeseries/{time_series_id}",
-                 "data pattern":
-                 API_BASE_URL + ("timeseries/{time_series_id}/getData?"
-                                 "timespan={start}/{end}")}
+API_ENDPOINTS = {
+    "phenomena": API_BASE_URL + "phenomena",
+    "stations": API_BASE_URL + "stations",
+    "timeseries": API_BASE_URL + "timeseries",
+    "timeseries pattern": API_BASE_URL + "timeseries/{time_series_id}",
+    "data pattern": API_BASE_URL + ("timeseries/{time_series_id}/getData?"
+                                    "timespan={start}/{end}"),
+    }
 
 # Other resources
 WEBSITE_URL = "http://www.irceline.be"

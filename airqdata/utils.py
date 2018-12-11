@@ -19,9 +19,11 @@ from pandas.io.json import json_normalize
 
 # Collection of equivalent phenomenon names for comparisons between
 # sensors with different affiliations
-EQUIVALENT_PHENOMENA = ({"pm2.5", "Particulate Matter < 2.5 µm"},
-                        {"pm10", "Particulate Matter < 10 µm"},
-                        {"temperature"})
+EQUIVALENT_PHENOMENA = (
+    {"pm2.5", "Particulate Matter < 2.5 µm"},
+    {"pm10", "Particulate Matter < 10 µm"},
+    {"temperature"},
+    )
 
 
 class BaseSensor:
