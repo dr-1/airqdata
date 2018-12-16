@@ -403,12 +403,15 @@ class Sensor(utils.BaseSensor):
 
         Returns:
             Dictionary of latest measurement timestamp and value
+
+        Raises:
+            requests.HTTPError if request failed
         """
         call_rate_limiter()
-        time_series_data = (requests
-                            .get(API_ENDPOINTS["time series pattern"]
-                                 .format(time_series_id=self.sensor_id))
-                            .json())
+        response = requests.get(API_ENDPOINTS["time series pattern"]
+                                .format(time_series_id=self.sensor_id))
+        response.raise_for_status()
+        time_series_data = response.json()
         last_measurement = time_series_data["lastValue"]
         return last_measurement
 
