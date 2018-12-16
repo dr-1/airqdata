@@ -399,7 +399,11 @@ class Sensor(utils.BaseSensor):
         pass
 
     def get_last_measurement(self):
-        """Get latest measurement timestamp and value."""
+        """Get latest measurement timestamp and value.
+
+        Returns:
+            Dictionary of latest measurement timestamp and value
+        """
         call_rate_limiter()
         time_series_data = (requests
                             .get(API_ENDPOINTS["time series pattern"]
