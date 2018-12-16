@@ -18,8 +18,8 @@ API_BASE_URL = "https://geo.irceline.be/sos/api/v1/"
 API_ENDPOINTS = {
     "phenomena": API_BASE_URL + "phenomena",
     "stations": API_BASE_URL + "stations",
-    "timeseries": API_BASE_URL + "timeseries",
-    "timeseries pattern": API_BASE_URL + "timeseries/{time_series_id}",
+    "time series": API_BASE_URL + "timeseries",
+    "time series pattern": API_BASE_URL + "timeseries/{time_series_id}",
     "data pattern": API_BASE_URL + ("timeseries/{time_series_id}/getData?"
                                     "timespan={start}/{end}"),
     }
@@ -127,7 +127,7 @@ class Metadata:
 
         # Retrieve and reshape data
         time_series = retrieve(cache_file=time_series_cache_file,
-                               url=API_ENDPOINTS["timeseries"],
+                               url=API_ENDPOINTS["time series"],
                                label="time series metadata",
                                call_rate_limiter=call_rate_limiter,
                                **retrieval_kwargs)
@@ -299,11 +299,11 @@ class Sensor(utils.BaseSensor):
     Sensors are represented as time series by IRCELINE.
     """
 
-    def __init__(self, timeseries_id):
+    def __init__(self, time_series_id):
         """Establish sensor properties.
 
         Args:
-            timeseries_id: IRCELINE time series ID as listed in
+            time_series_id: IRCELINE time series ID as listed in
                 Metadata.time_series, used as value of sensor_id
                 property
         """
@@ -311,8 +311,8 @@ class Sensor(utils.BaseSensor):
         # Ensure that metadata can be queried
         Metadata.initialized or Metadata()
 
-        super().__init__(sensor_id=timeseries_id, affiliation="IRCELINE")
-        self.metadata = Metadata.time_series.loc[int(timeseries_id)]
+        super().__init__(sensor_id=time_series_id, affiliation="IRCELINE")
+        self.metadata = Metadata.time_series.loc[int(time_series_id)]
         self.label = "at " + self.metadata["station_label"]
         self.lat = self.metadata["station_lat"]
         self.lon = self.metadata["station_lon"]
@@ -377,7 +377,7 @@ class Sensor(utils.BaseSensor):
         # Retrieve and parse data
         data = retrieve(cache_file=filepath,
                         url=url,
-                        label="IRCELINE timeseries data",
+                        label="IRCELINE time series data",
                         call_rate_limiter=call_rate_limiter,
                         **retrieval_kwargs)
         data = pd.DataFrame.from_dict(data.loc[0, "values"])
@@ -401,11 +401,11 @@ class Sensor(utils.BaseSensor):
     def get_last_measurement(self):
         """Get latest measurement timestamp and value."""
         call_rate_limiter()
-        timeseries_data = (requests
-                           .get(API_ENDPOINTS["timeseries pattern"]
-                                .format(time_series_id=self.sensor_id))
-                           .json())
-        last_measurement = timeseries_data["lastValue"]
+        time_series_data = (requests
+                            .get(API_ENDPOINTS["time series pattern"]
+                                 .format(time_series_id=self.sensor_id))
+                            .json())
+        last_measurement = time_series_data["lastValue"]
         return last_measurement
 
     def get_hourly_means(self):

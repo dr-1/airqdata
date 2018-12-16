@@ -39,7 +39,7 @@ class BaseSensor:
         alt: altitude of location
         sensor_type: name of the sensor type or model
         current_measurements: dict of current measurements
-        measurements: pandas dataframe of measurements; timeseries
+        measurements: pandas dataframe of measurements; time series
             indexed by datetime values; one column per phenomenon
         intervals: histogram of times between measurements
         phenomena: names of phenomena measured
@@ -110,9 +110,9 @@ class BaseSensor:
                 will be pd.np.nan
 
         Returns:
-            pandas dataframe of hourly means of measurements; timeseries
-            indexed by hourly datetime values, with one column per
-                phenomenon
+            pandas dataframe of hourly means of measurements; time
+                series indexed by hourly datetime values, with one
+                column per phenomenon
         """
         resampler = self.measurements.resample("h", kind="period")
         hourly_means = resampler.sum(min_count=min_count) / resampler.count()
@@ -123,7 +123,7 @@ class BaseSensor:
         """Plot time series.
 
         Args:
-            data: timeseries of one or more measures as a Pandas
+            data: time series of one or more measures as a Pandas
                 dataframe
             aggregation_level: aggregation level of the data, e.g.
                 "Hourly Means", or "Measurements" for individual data
