@@ -223,12 +223,16 @@ def search_proximity(lat=50.848, lon=4.351, radius=8):
         Dataframe of matching sensors, listing sensor types, locations
         and distances in kilometers from the search center, indexed by
         sensor ID
+
+    Raises:
+        requests.HTTPError if request failed
     """
     url = (API_ENDPOINTS["proximity search pattern"]
            .format(lat=lat, lon=lon, radius=radius))
     call_rate_limiter()
-    _json = requests.get(url).json()
-    sensors = json_normalize(_json)
+    response = requests.get(url)
+    response.raise_for_status()
+    sensors = json_normalize(response.json())
     if len(sensors) == 0:
         sensors = pd.DataFrame(columns=["sensor_type", "latitude", "longitude",
                                         "distance"])
