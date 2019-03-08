@@ -343,7 +343,8 @@ def label_coordinates(lat, lon):
     """
     ns_hemisphere = "N" if lat > 0 else "S"
     ew_hemisphere = "E" if lon > 0 else "W"
-    label = "{}°{} {}°{}".format(lat, ns_hemisphere, lon, ew_hemisphere)
+    label = "{}°{} {}°{}".format(abs(lat), ns_hemisphere,
+                                 abs(lon), ew_hemisphere)
     return label
 
 
